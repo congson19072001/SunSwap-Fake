@@ -35,6 +35,9 @@ const initialState: MulticallState = {
   callResults: {}
 }
 
+/*
+ * TODO: Find RPC in here final
+ */
 export default createReducer(initialState, builder =>
   builder
     .addCase(addMulticallListeners, (state, { payload: { calls, chainId, options: { blocksPerFetch = 1 } = {} } }) => {

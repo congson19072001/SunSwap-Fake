@@ -48,6 +48,11 @@ export const NEVER_RELOAD: ListenerOptions = {
   blocksPerFetch: Infinity
 }
 
+/**
+ * TODO: Find RPC in here
+ *
+ *
+ */
 // the lowest level call for subscribing to contract data
 function useCallsData(calls: (Call | undefined)[], options?: ListenerOptions): CallResult[] {
   const { chainId } = useActiveWeb3React()
@@ -219,6 +224,9 @@ export function useMultipleContractSingleData(
     [addresses, callData, fragment]
   )
 
+  /**
+   * TODO: check for errors in calls
+   */
   const results = useCallsData(calls, options)
 
   const latestBlockNumber = useBlockNumber()

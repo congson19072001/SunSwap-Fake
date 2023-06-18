@@ -66,7 +66,7 @@ export function useENSRegistrarContract(withSignerIfPossible?: boolean): Contrac
         address = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e'
         break
       case ChainId.POLYGON_MUMBAI:
-        address = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e'
+        address = '0x42Fa2cD4E949515686F0C0a44841b1ea54C3FA02'
         break
     }
   }

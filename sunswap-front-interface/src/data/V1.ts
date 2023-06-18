@@ -24,6 +24,7 @@ import { NEVER_RELOAD, useSingleCallResult, useSingleContractMultipleData } from
 import { useETHBalances, useTokenBalance, useTokenBalances } from '../state/wallet/hooks'
 
 export function useV1ExchangeAddress(tokenAddress?: string): string | undefined {
+  console.log('useV1ExchangeAddress')
   const contract = useV1FactoryContract()
 
   const inputs = useMemo(() => [tokenAddress], [tokenAddress])
@@ -37,6 +38,7 @@ export class MockV1Pair extends Pair {
 }
 
 function useMockV1Pair(inputCurrency?: Currency): MockV1Pair | undefined {
+  console.log('useMockV1Pair')
   const token = inputCurrency instanceof Token ? inputCurrency : undefined
 
   const isWETH = Boolean(token && token.equals(WETH[token.chainId]))
@@ -53,6 +55,7 @@ function useMockV1Pair(inputCurrency?: Currency): MockV1Pair | undefined {
 
 // returns all v1 exchange addresses in the user's token list
 export function useAllTokenV1Exchanges(): { [exchangeAddress: string]: Token } {
+  console.log('useAllTokenV1Exchanges')
   const allTokens = useAllTokens()
   const factory = useV1FactoryContract()
   const args = useMemo(() => Object.keys(allTokens).map(tokenAddress => [tokenAddress]), [allTokens])
@@ -104,6 +107,7 @@ export function useV1Trade(
   outputCurrency?: Currency,
   exactAmount?: CurrencyAmount
 ): Trade | undefined {
+  console.log('useV1Trade')
   // get the mock v1 pairs
   const inputPair = useMockV1Pair(inputCurrency)
   const outputPair = useMockV1Pair(outputCurrency)
@@ -145,6 +149,7 @@ export function getTradeVersion(trade?: Trade): Version | undefined {
 
 // returns the v1 exchange against which a trade should be executed
 export function useV1TradeExchangeAddress(trade: Trade | undefined): string | undefined {
+  console.log('useV1TradeExchangeAddress')
   const tokenAddress: string | undefined = useMemo(() => {
     if (!trade) return undefined
     const isV1 = getTradeVersion(trade) === Version.v1

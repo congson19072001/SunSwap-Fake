@@ -20,9 +20,11 @@ export function useFetchListCallback(): (listUrl: string) => Promise<TokenList> 
         if (NETWORK_CHAIN_ID === ChainId.MAINNET) {
           const networkLibrary = getNetworkLibrary()
           if (networkLibrary) {
+            console.log('networkLibrary', networkLibrary)
             return resolveENSContentHash(ensName, networkLibrary)
           }
         }
+        console.log('chainId', chainId)
         throw new Error('Could not construct mainnet ENS resolver')
       }
       return resolveENSContentHash(ensName, library)

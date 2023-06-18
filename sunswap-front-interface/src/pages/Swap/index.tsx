@@ -100,14 +100,12 @@ export default function Swap() {
         [Version.v1]: v1Trade,
         [Version.v2]: v2Trade
       }[toggledVersion]
-
   const betterTradeLinkVersion: Version | undefined =
     toggledVersion === Version.v2 && isTradeBetter(v2Trade, v1Trade, BETTER_TRADE_LINK_THRESHOLD)
       ? Version.v1
       : toggledVersion === Version.v1 && isTradeBetter(v1Trade, v2Trade)
       ? Version.v2
       : undefined
-
   const parsedAmounts = showWrap
     ? {
         [Field.INPUT]: parsedAmount,
