@@ -1,7 +1,7 @@
 {
-  "name": "uniswap_deploy",
+  "name": "sunswap_deploy",
   "version": "1.0.0",
-  "description": "> *Uniswap在Github上面开源了全部合约代码,其中包括`核心合约`,`周边合约`两部分.Uniswap还开源了前端代码,前端代码使用React开发*",
+  "description": "Sunswap",
   "main": "truffle-config.js",
   "directories": {
     "test": "test"
