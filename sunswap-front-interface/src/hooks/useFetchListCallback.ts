@@ -24,7 +24,6 @@ export function useFetchListCallback(): (listUrl: string) => Promise<TokenList> 
             return resolveENSContentHash(ensName, networkLibrary)
           }
         }
-        console.log('chainId', chainId)
         throw new Error('Could not construct mainnet ENS resolver')
       }
       return resolveENSContentHash(ensName, library)
