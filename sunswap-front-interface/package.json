@@ -1,6 +1,6 @@
 {
-  "name": "@uniswap/interface",
-  "description": "Uniswap Interface",
+  "name": "sunswap-interface",
+  "description": "SunSwap Interface",
   "private": true,
   "devDependencies": {
     "@ethersproject/experimental": "^5.0.1",
