@@ -1,4 +1,4 @@
-import { Currency, ETHER, Token } from 'sunswap-sdk'
+import { ChainId, Currency, ETHER, Token } from 'sunswap-sdk'
 import React, { KeyboardEvent, RefObject, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import ReactGA from 'react-ga'
 import { useTranslation } from 'react-i18next'
@@ -31,6 +31,7 @@ interface CurrencySearchProps {
   otherSelectedCurrency?: Currency | null
   showCommonBases?: boolean
   onChangeList: () => void
+  otherChainId?: ChainId
 }
 
 export function CurrencySearch({
@@ -40,7 +41,8 @@ export function CurrencySearch({
   showCommonBases,
   onDismiss,
   isOpen,
-  onChangeList
+  onChangeList,
+  otherChainId
 }: CurrencySearchProps) {
   const { t } = useTranslation()
   const { chainId } = useActiveWeb3React()
@@ -49,8 +51,7 @@ export function CurrencySearch({
   const fixedList = useRef<FixedSizeList>()
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [invertSearchOrder, setInvertSearchOrder] = useState<boolean>(false)
-  const allTokens = useAllTokens()
-
+  const allTokens = useAllTokens(otherChainId)
   // if they input an address, use it
   const isAddressSearch = isAddress(searchQuery)
   const searchToken = useToken(searchQuery)

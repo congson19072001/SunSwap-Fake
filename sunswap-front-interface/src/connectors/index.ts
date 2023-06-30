@@ -3,6 +3,7 @@ import { InjectedConnector } from '@web3-react/injected-connector'
 import { WalletConnectConnector } from '@web3-react/walletconnect-connector'
 import { WalletLinkConnector } from '@web3-react/walletlink-connector'
 import { PortisConnector } from '@web3-react/portis-connector'
+import { ChainId } from 'sunswap-sdk'
 
 // import { FortmaticConnector } from './Fortmatic'
 import { NetworkConnector } from './NetworkConnector'
@@ -18,17 +19,58 @@ if (typeof NETWORK_URL === 'undefined') {
 }
 
 export const network = new NetworkConnector({
-  urls: { [NETWORK_CHAIN_ID]: NETWORK_URL }
+  urls: { 
+    [NETWORK_CHAIN_ID]: NETWORK_URL,
+    [ChainId.POLYGON]: "https://polygon-rpc.com",
+    [ChainId.BINANCE_TESTNET]: "https://data-seed-prebsc-1-s1.binance.org:8545",
+    [ChainId.BINANCE]: "https://bsc.publicnode.com",
+    [ChainId.MAINNET]: "https://ethereum.publicnode.com",
+    [ChainId.GÖRLI]: "https://ethereum-goerli.publicnode.com"
+    
+  },
+  defaultChainId: NETWORK_CHAIN_ID
 })
 
 let networkLibrary: Web3Provider | undefined
 export function getNetworkLibrary(): Web3Provider {
-  return (networkLibrary = networkLibrary ?? new Web3Provider(network.provider as any))
+  return (networkLibrary = networkLibrary ?? new Web3Provider(network.provider as any, "any"))
 }
 
 export const injected = new InjectedConnector({
-  supportedChainIds: [1, 3, 4, 5, 42, 80001]
+  supportedChainIds: [1, 3, 4, 5, 42, 80001, 97, 56]
 })
+
+export interface ChainSelect {
+  chainId: number
+  img: string
+}
+// type IAllowedNetwork = '0x89' | '0x13881'
+
+export async function requestSwitchNetwork(chainId: number) {
+  const chainIdHex = `0x${chainId.toString(16)}` // as IAllowedNetwork
+  const provider = (window as any)?.ethereum
+
+  if (provider) {
+    try {
+      await provider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: chainIdHex }]
+      })
+    } catch (switchError) {
+      // This error code indicates that the chain has not been added to MetaMask.
+      // if (switchError.code === 4902) {
+      //   try {
+      //     await provider.request({
+      //       method: 'wallet_addEthereumChain',
+      //       params: [NETWORKS[chainIdHex]],
+      //     });
+      //   } catch (addError) {
+      //     console.log({ addError });
+      //   }
+      // }
+    }
+  }
+}
 
 // mainnet only
 export const walletconnect = new WalletConnectConnector({

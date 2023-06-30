@@ -24,8 +24,8 @@
     "plugin:prettier/recommended"
   ],
   "rules": {
-    "@typescript-eslint/explicit-function-return-type": "off",
-    "prettier/prettier": "error",
-    "@typescript-eslint/no-explicit-any": "off"
+    // "@typescript-eslint/explicit-function-return-type": "off",
+    // "prettier/prettier": "error",
+    // "@typescript-eslint/no-explicit-any": "off"
   }
 }

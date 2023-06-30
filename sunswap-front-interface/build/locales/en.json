@@ -18,6 +18,8 @@
   "unlock": "Unlock",
   "pending": "Pending",
   "selectToken": "Select a token",
+  "selectChain": "Select a chain",
+  "selectChainCont": "Select a chain to continue.",
   "searchOrPaste": "Search Token Name, Symbol, or Address",
   "searchOrPasteMobile": "Name, Symbol, or Address",
   "noExchange": "No Exchange Found",

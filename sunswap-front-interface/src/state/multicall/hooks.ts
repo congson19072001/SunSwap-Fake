@@ -14,6 +14,7 @@ import {
   toCallKey,
   ListenerOptions
 } from './actions'
+import { ChainId } from 'sunswap-sdk'
 
 export interface Result extends ReadonlyArray<any> {
   readonly [key: string]: any
@@ -54,8 +55,12 @@ export const NEVER_RELOAD: ListenerOptions = {
  *
  */
 // the lowest level call for subscribing to contract data
-function useCallsData(calls: (Call | undefined)[], options?: ListenerOptions): CallResult[] {
+function useCallsData(calls: (Call | undefined)[], options?: ListenerOptions, onChainId?: ChainId): CallResult[] {
   const { chainId } = useActiveWeb3React()
+  let realChainId = chainId;
+  if(onChainId) {
+    realChainId = onChainId;
+  }
   const callResults = useSelector<AppState, AppState['multicall']['callResults']>(state => state.multicall.callResults)
   const dispatch = useDispatch<AppDispatch>()
 
@@ -73,11 +78,11 @@ function useCallsData(calls: (Call | undefined)[], options?: ListenerOptions): C
   // update listeners when there is an actual change that persists for at least 100ms
   useEffect(() => {
     const callKeys: string[] = JSON.parse(serializedCallKeys)
-    if (!chainId || callKeys.length === 0) return undefined
+    if (!realChainId || callKeys.length === 0) return undefined
     const calls = callKeys.map(key => parseCallKey(key))
     dispatch(
       addMulticallListeners({
-        chainId,
+        chainId: realChainId as ChainId,
         calls,
         options
       })
@@ -86,20 +91,20 @@ function useCallsData(calls: (Call | undefined)[], options?: ListenerOptions): C
     return () => {
       dispatch(
         removeMulticallListeners({
-          chainId,
+          chainId: realChainId as ChainId,
           calls,
           options
         })
       )
     }
-  }, [chainId, dispatch, options, serializedCallKeys])
+  }, [realChainId, dispatch, options, serializedCallKeys])
 
   return useMemo(
     () =>
       calls.map<CallResult>(call => {
-        if (!chainId || !call) return INVALID_RESULT
+        if (!realChainId || !call) return INVALID_RESULT
 
-        const result = callResults[chainId]?.[toCallKey(call)]
+        const result = callResults[realChainId]?.[toCallKey(call)]
         let data
         if (result?.data && result?.data !== '0x') {
           data = result.data
@@ -107,7 +112,7 @@ function useCallsData(calls: (Call | undefined)[], options?: ListenerOptions): C
 
         return { valid: true, data, blockNumber: result?.blockNumber }
       }),
-    [callResults, calls, chainId]
+    [callResults, calls, realChainId]
   )
 }
 
@@ -198,7 +203,8 @@ export function useMultipleContractSingleData(
   contractInterface: Interface,
   methodName: string,
   callInputs?: OptionalMethodInputs,
-  options?: ListenerOptions
+  options?: ListenerOptions,
+  chainId ? : ChainId
 ): CallState[] {
   const fragment = useMemo(() => contractInterface.getFunction(methodName), [contractInterface, methodName])
   const callData: string | undefined = useMemo(
@@ -227,7 +233,7 @@ export function useMultipleContractSingleData(
   /**
    * TODO: check for errors in calls
    */
-  const results = useCallsData(calls, options)
+  const results = useCallsData(calls, options, chainId)
 
   const latestBlockNumber = useBlockNumber()
 

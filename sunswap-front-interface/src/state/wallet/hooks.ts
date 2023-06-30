@@ -1,4 +1,4 @@
-import { Currency, CurrencyAmount, ETHER, JSBI, Token, TokenAmount } from 'sunswap-sdk'
+import { ChainId, Currency, CurrencyAmount, ETHER, JSBI, Token, TokenAmount } from 'sunswap-sdk'
 import { useMemo } from 'react'
 import ERC20_INTERFACE from '../../constants/abis/erc20'
 import { useAllTokens } from '../../hooks/Tokens'
@@ -48,7 +48,8 @@ export function useETHBalances(
  */
 export function useTokenBalancesWithLoadingIndicator(
   address?: string,
-  tokens?: (Token | undefined)[]
+  tokens?: (Token | undefined)[],
+  chainId?: ChainId
 ): [{ [tokenAddress: string]: TokenAmount | undefined }, boolean] {
   const validatedTokens: Token[] = useMemo(
     () => tokens?.filter((t?: Token): t is Token => isAddress(t?.address) !== false) ?? [],
@@ -57,7 +58,7 @@ export function useTokenBalancesWithLoadingIndicator(
 
   const validatedTokenAddresses = useMemo(() => validatedTokens.map(vt => vt.address), [validatedTokens])
 
-  const balances = useMultipleContractSingleData(validatedTokenAddresses, ERC20_INTERFACE, 'balanceOf', [address])
+  const balances = useMultipleContractSingleData(validatedTokenAddresses, ERC20_INTERFACE, 'balanceOf', [address], undefined, chainId)
 
   const anyLoading: boolean = useMemo(() => balances.some(callState => callState.loading), [balances])
 
@@ -82,9 +83,10 @@ export function useTokenBalancesWithLoadingIndicator(
 
 export function useTokenBalances(
   address?: string,
-  tokens?: (Token | undefined)[]
+  tokens?: (Token | undefined)[],
+  chainId?: ChainId
 ): { [tokenAddress: string]: TokenAmount | undefined } {
-  return useTokenBalancesWithLoadingIndicator(address, tokens)[0]
+  return useTokenBalancesWithLoadingIndicator(address, tokens, chainId)[0]
 }
 
 // get the balance for a single token/account combo
@@ -96,13 +98,14 @@ export function useTokenBalance(account?: string, token?: Token): TokenAmount | 
 
 export function useCurrencyBalances(
   account?: string,
-  currencies?: (Currency | undefined)[]
+  currencies?: (Currency | undefined)[],
+  chainId?: ChainId
 ): (CurrencyAmount | undefined)[] {
   const tokens = useMemo(() => currencies?.filter((currency): currency is Token => currency instanceof Token) ?? [], [
     currencies
   ])
 
-  const tokenBalances = useTokenBalances(account, tokens)
+  const tokenBalances = useTokenBalances(account, tokens, chainId)
   const containsETH: boolean = useMemo(() => currencies?.some(currency => currency === ETHER) ?? false, [currencies])
   const ethBalance = useETHBalances(containsETH ? [account] : [])
 
@@ -118,8 +121,8 @@ export function useCurrencyBalances(
   )
 }
 
-export function useCurrencyBalance(account?: string, currency?: Currency): CurrencyAmount | undefined {
-  return useCurrencyBalances(account, [currency])[0]
+export function useCurrencyBalance(account?: string, currency?: Currency, chainId?: ChainId): CurrencyAmount | undefined {
+  return useCurrencyBalances(account, [currency], chainId)[0]
 }
 
 // mimics useAllBalances

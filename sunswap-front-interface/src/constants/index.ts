@@ -2,6 +2,7 @@ import { ChainId, JSBI, Percent, Token, WETH } from 'sunswap-sdk'
 import { AbstractConnector } from '@web3-react/abstract-connector'
 
 import {
+  ChainSelect,
   // fortmatic,
   injected,
   portis,
@@ -9,11 +10,15 @@ import {
   walletlink
 } from '../connectors'
 
-export const ROUTER_ADDRESS = '0x775d3523e2Af46F41FBaEEc981b9D6456018c7c7'
+export const ROUTER_ADDRESS = '0x756914fA93b96842412d3b2d31b6f09009542098'
 
 // a list of tokens by chain
 type ChainTokenList = {
   readonly [chainId in ChainId]: Token[]
+}
+
+type ChainList = {
+  readonly [chainId in ChainId]: ChainSelect[]
 }
 
 export const BNB = new Token(ChainId.POLYGON_MUMBAI, '0x3C0F3004631a99F7b96F59710e093Aa13a35E9B0', 18, 'BNB', 'BNB')
@@ -54,8 +59,55 @@ const WETH_ONLY: ChainTokenList = {
   [ChainId.GÖRLI]: [WETH[ChainId.GÖRLI]],
   [ChainId.KOVAN]: [WETH[ChainId.KOVAN]],
   [ChainId.POLYGON]: [WETH[ChainId.POLYGON]],
-  [ChainId.POLYGON_MUMBAI]: [WETH[ChainId.POLYGON_MUMBAI]]
+  [ChainId.POLYGON_MUMBAI]: [WETH[ChainId.POLYGON_MUMBAI]],
+  [ChainId.BINANCE]: [WETH[ChainId.BINANCE]],
+  [ChainId.BINANCE_TESTNET]: [WETH[ChainId.BINANCE_TESTNET]],
 }
+
+export class ChainFinal{
+  chainId: ChainId;
+  img: string;
+}
+
+export const CHAIN_SUPPORTED: ChainList = {
+  [ChainId.MAINNET]: [{
+    chainId: ChainId.MAINNET,
+    img: ""
+  }],
+  [ChainId.ROPSTEN]: [{
+    chainId: ChainId.ROPSTEN,
+    img: ""
+  }],
+  [ChainId.RINKEBY]: [{
+    chainId: ChainId.RINKEBY,
+    img: ""
+  }],
+  [ChainId.GÖRLI]: [{
+    chainId: ChainId.GÖRLI,
+    img: ""
+  }],
+  [ChainId.KOVAN]: [{
+    chainId: ChainId.KOVAN,
+    img: ""
+  }],
+  [ChainId.POLYGON]: [{
+    chainId: ChainId.POLYGON,
+    img: ""
+  }],
+  [ChainId.POLYGON_MUMBAI]: [{
+    chainId: ChainId.POLYGON_MUMBAI,
+    img: ""
+  }],
+  [ChainId.BINANCE]: [{
+    chainId: ChainId.BINANCE,
+    img: ""
+  }],
+  [ChainId.BINANCE_TESTNET]: [{
+    chainId: ChainId.BINANCE_TESTNET,
+    img: ""
+  }]
+}
+
 
 // used to construct intermediary pairs for trading
 export const BASES_TO_CHECK_TRADES_AGAINST: ChainTokenList = {
@@ -91,7 +143,21 @@ export const PINNED_PAIRS: { readonly [chainId in ChainId]?: [Token, Token][] } 
     ],
     [USDC, SHIB],
     [BNB, SHIB]
+  ],
+  [ChainId.POLYGON_MUMBAI]: [
+    [BNB, SHIB],
+    [DAI, USDC],
+    [DAI, USDT],
+    [
+      new Token(ChainId.POLYGON_MUMBAI, '0xFAd46E603A294a0eAc73DDC02D7ef30443a89414', 18, 'WETH', 'Wrapped Ethereum'),
+      new Token(ChainId.POLYGON_MUMBAI, '0x73a9078a90C7317698c3eb5071E71BF4e428fAE3', 18, 'USDC', 'USD Coin')
+    ]
   ]
+}
+
+export const MUMBAI_CHAIN: ChainSelect = {
+  chainId: 80001,
+  img: ""
 }
 
 export interface WalletInfo {

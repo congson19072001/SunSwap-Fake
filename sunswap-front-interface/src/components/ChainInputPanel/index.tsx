@@ -1,18 +1,19 @@
-import { ChainId, Currency, Pair } from 'sunswap-sdk'
+import { Currency, Pair } from 'sunswap-sdk'
 import React, { useState, useContext, useCallback } from 'react'
 import styled, { ThemeContext } from 'styled-components'
 import { darken } from 'polished'
 import { useCurrencyBalance } from '../../state/wallet/hooks'
-import CurrencySearchModal from '../SearchModal/CurrencySearchModal'
-import CurrencyLogo from '../CurrencyLogo'
+import ChainSearchModal from '../SearchModal/ChainSearchModal'
+// import CurrencyLogo from '../CurrencyLogo'
 import DoubleCurrencyLogo from '../DoubleLogo'
 import { RowBetween } from '../Row'
 import { TYPE } from '../../theme'
 import { Input as NumericalInput } from '../NumericalInput'
 import { ReactComponent as DropDown } from '../../assets/images/dropdown.svg'
-
 import { useActiveWeb3React } from '../../hooks'
 import { useTranslation } from 'react-i18next'
+import { ChainSelect } from '../../connectors'
+import { Field } from '../../state/swap/actions'
 
 const InputRow = styled.div<{ selected: boolean }>`
   ${({ theme }) => theme.flexRowNoWrap}
@@ -20,7 +21,7 @@ const InputRow = styled.div<{ selected: boolean }>`
   padding: ${({ selected }) => (selected ? '0.75rem 0.5rem 0.75rem 1rem' : '0.75rem 0.75rem 0.75rem 1rem')};
 `
 
-const CurrencySelect = styled.button<{ selected: boolean }>`
+const ChainSelector = styled.button<{ selected: boolean }>`
   align-items: center;
   height: 2.2rem;
   font-size: 20px;
@@ -114,46 +115,50 @@ const StyledBalanceMax = styled.button`
   `};
 `
 
-interface CurrencyInputPanelProps {
+interface ChainInputPanelProps {
   value: string
   onUserInput: (value: string) => void
   onMax?: () => void
   showMaxButton: boolean
   label?: string
-  onCurrencySelect?: (currency: Currency) => void
+  onChainSelect?: (chain: ChainSelect) => void
+  chain?: ChainSelect | null
   currency?: Currency | null
   disableCurrencySelect?: boolean
   hideBalance?: boolean
   pair?: Pair | null
   hideInput?: boolean
-  otherCurrency?: Currency | null
+  otherChain?: ChainSelect | null
   id: string
-  showCommonBases?: boolean
-  otherChainId?: ChainId
+  type: Field
+  showCommonBases?: boolean,
+  chainId?: number
 }
 
-export default function CurrencyInputPanel({
+export default function ChainInputPanel({
   value,
   onUserInput,
   onMax,
   showMaxButton,
   label = 'Input',
-  onCurrencySelect,
+  onChainSelect,
   currency,
+  chain,
   disableCurrencySelect = false,
   hideBalance = false,
   pair = null, // used for double token logo
   hideInput = false,
-  otherCurrency,
+  otherChain,
   id,
+  type,
   showCommonBases,
-  otherChainId
-}: CurrencyInputPanelProps) {
+  chainId
+}: ChainInputPanelProps) {
   const { t } = useTranslation()
-
+  
   const [modalOpen, setModalOpen] = useState(false)
   const { account } = useActiveWeb3React()
-  const selectedCurrencyBalance = useCurrencyBalance(account ?? undefined, currency ?? undefined)
+  const selectedCurrencyBalance = useCurrencyBalance(account ?? undefined, currency ?? undefined, chainId ?? undefined)
   const theme = useContext(ThemeContext)
 
   const handleDismissSearch = useCallback(() => {
@@ -177,7 +182,7 @@ export default function CurrencyInputPanel({
                   fontSize={14}
                   style={{ display: 'inline', cursor: 'pointer' }}
                 >
-                  {!hideBalance && !!currency && selectedCurrencyBalance
+                  {!hideBalance && !!chain && selectedCurrencyBalance
                     ? 'Balance: ' + selectedCurrencyBalance?.toSignificant(6)
                     : ' -'}
                 </TYPE.body>
@@ -195,14 +200,14 @@ export default function CurrencyInputPanel({
                   onUserInput(val)
                 }}
               />
-              {account && currency && showMaxButton && label !== 'To' && (
+              {account && chain && showMaxButton && label !== 'To' && (
                 <StyledBalanceMax onClick={onMax}>MAX</StyledBalanceMax>
               )}
             </>
           )}
-          <CurrencySelect
-            selected={!!currency}
-            className="open-currency-select-button"
+          <ChainSelector
+            selected={!!chain}
+            className="open-chain-select-button"
             onClick={() => {
               if (!disableCurrencySelect) {
                 setModalOpen(true)
@@ -212,36 +217,33 @@ export default function CurrencyInputPanel({
             <Aligner>
               {pair ? (
                 <DoubleCurrencyLogo currency0={pair.token0} currency1={pair.token1} size={24} margin={true} />
-              ) : currency ? (
-                <CurrencyLogo currency={currency} size={'24px'} />
+              ) : chain ? (
+                //<CurrencyLogo currency={chain} size={'24px'} />
+                null
               ) : null}
               {pair ? (
                 <StyledTokenName className="pair-name-container">
                   {pair?.token0.symbol}:{pair?.token1.symbol}
                 </StyledTokenName>
               ) : (
-                <StyledTokenName className="token-symbol-container" active={Boolean(currency && currency.symbol)}>
-                  {(currency && currency.symbol && currency.symbol.length > 20
-                    ? currency.symbol.slice(0, 4) +
-                      '...' +
-                      currency.symbol.slice(currency.symbol.length - 5, currency.symbol.length)
-                    : currency?.symbol) || t('selectToken')}
+                <StyledTokenName className="token-symbol-container" active={Boolean(chain && chain.chainId)}>
+                  {(chain?.chainId) || t('selectChain')}
                 </StyledTokenName>
               )}
-              {!disableCurrencySelect && <StyledDropDown selected={!!currency} />}
+              {!disableCurrencySelect && <StyledDropDown selected={!!chain} />}
             </Aligner>
-          </CurrencySelect>
+          </ChainSelector>
         </InputRow>
       </Container>
-      {!disableCurrencySelect && onCurrencySelect && (
-        <CurrencySearchModal
+      {!disableCurrencySelect && onChainSelect && (
+        <ChainSearchModal
           isOpen={modalOpen}
           onDismiss={handleDismissSearch}
-          onCurrencySelect={onCurrencySelect}
-          selectedCurrency={currency}
-          otherSelectedCurrency={otherCurrency}
+          onChainSelect={onChainSelect}
+          selectedChain={chain}
+          otherselectedChain={otherChain}
           showCommonBases={showCommonBases}
-          otherChainId={otherChainId}
+          type={type}
         />
       )}
     </InputPanel>

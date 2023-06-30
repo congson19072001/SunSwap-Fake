@@ -18,6 +18,8 @@
   "unlock": "Freischalten",
   "pending": "hängige",
   "selectToken": "Token auswählen",
+  "selectChain": "Chain auswählen",
+  "selectChainCont": "Chain auswählen um fortzufahren.",
   "searchOrPaste": "Token Name, Symbol oder Adresse suchen",
   "searchOrPasteMobile": "Name, Symbol oder Adresse",
   "noExchange": "Exchange nicht gefunden",

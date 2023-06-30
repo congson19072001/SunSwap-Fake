@@ -12,6 +12,7 @@ import WordmarkDark from '../../assets/svg/wordmark_white.png'
 import { useActiveWeb3React } from '../../hooks'
 import { useDarkModeManager } from '../../state/user/hooks'
 import { useETHBalances } from '../../state/wallet/hooks'
+import { Repeat, Home, Server, Link } from 'react-feather'
 
 import { YellowCard } from '../Card'
 import Settings from '../Settings'
@@ -19,6 +20,7 @@ import Menu from '../Menu'
 
 import Row, { RowBetween } from '../Row'
 import Web3Status from '../Web3Status'
+import { NavLink } from 'react-router-dom'
 // import VersionSwitch from './VersionSwitch'
 
 const HeaderFrame = styled.div`
@@ -124,7 +126,94 @@ const BalanceText = styled(Text)`
   ${({ theme }) => theme.mediaWidth.upToExtraSmall`
     display: none;
   `};
+`;
+
+const NavigationMenu = styled.ul`
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin: 0;
+  padding: 0 0;
+  list-style: none;
+
+  @media only screen and (max-width: 600px) {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 60px;
+    right: 0;
+    width: 100%;
+    background-color: #333;
+    color: white;
+
+    &.open {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+`;
+
+const NavigationMenuItem = styled.li`
+  margin: 0 15px;
+
+  a {
+    color: ${({ theme }) => theme.text1};
+    text-decoration: none;
+    font-size: 18px;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+`;
+
+const SwapButton = styled.button`
+  background-color: transparent;
+  border: none;
+  color: ${({ theme }) => theme.text1};
+  font-size: 18px;
+  cursor: pointer;
+
+  svg {
+    margin-right: 5px;
+  }
+`;
+
+const FaSwap = styled(Repeat)`
+  height: 18px;
+  width: 18px;
+
+  > * {
+    stroke: ${({ theme }) => theme.text1};
+  }
 `
+
+const FaHome = styled(Home)`
+  height: 18px;
+  width: 18px;
+
+  > * {
+    stroke: ${({ theme }) => theme.text1};
+  }
+`
+
+const FaPool = styled(Server)`
+  height: 18px;
+  width: 18px;
+
+  > * {
+    stroke: ${({ theme }) => theme.text1};
+  }
+`
+const FaBridge = styled(Link)`
+  height: 18px;
+  width: 18px;
+
+  > * {
+    stroke: ${({ theme }) => theme.text1};
+  }
+`
+
 
 const NETWORK_LABELS: { [chainId in ChainId]: string | null } = {
   [ChainId.MAINNET]: null,
@@ -133,7 +222,9 @@ const NETWORK_LABELS: { [chainId in ChainId]: string | null } = {
   [ChainId.GÖRLI]: 'Görli',
   [ChainId.KOVAN]: 'Kovan',
   [ChainId.POLYGON]: 'Polygon',
-  [ChainId.POLYGON_MUMBAI]: 'Polygon Mumbai'
+  [ChainId.POLYGON_MUMBAI]: 'Polygon Mumbai',
+  [ChainId.BINANCE]: 'Binance',
+  [ChainId.BINANCE_TESTNET]: 'Binance Testnet',
 }
 
 export default function Header() {
@@ -154,6 +245,20 @@ export default function Header() {
               <img style={{ marginLeft: '4px', marginTop: '4px' }} src={isDark ? WordmarkDark : Wordmark} alt="logo" />
             </TitleText>
           </Title>
+          <NavigationMenu className='open'>
+              <NavLink to="/">
+                <NavigationMenuItem><SwapButton><FaHome />Home</SwapButton></NavigationMenuItem>
+              </NavLink>
+              <NavLink to="/swap">
+                <NavigationMenuItem><SwapButton><FaSwap />Swap</SwapButton></NavigationMenuItem>
+              </NavLink>
+              <NavLink to="/pool">
+                <NavigationMenuItem><SwapButton><FaPool />Pool</SwapButton></NavigationMenuItem>
+              </NavLink>
+              <NavLink to="/bridge">
+                <NavigationMenuItem><SwapButton><FaBridge />Bridge</SwapButton></NavigationMenuItem>
+              </NavLink>
+          </NavigationMenu>
         </HeaderElement>
         <HeaderControls>
           <HeaderElement>

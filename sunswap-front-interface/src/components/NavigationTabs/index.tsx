@@ -99,3 +99,18 @@ export function AddRemoveTabs({ adding }: { adding: boolean }) {
     </Tabs>
   )
 }
+
+export function AddBridgeSwap() {
+  return (
+    <Tabs>
+      <RowBetween style={{ padding: '1rem' }}>
+        <ActiveText>Cross-chain Swap</ActiveText>
+        <QuestionHelper
+          text={
+            'Swap tokens between different blockchains by bridges.'
+          }
+        />
+      </RowBetween>
+    </Tabs>
+  )
+}

@@ -18,6 +18,8 @@
 	"unlock": "Mở khóa",
 	"pending": "Đang chờ xử lý",
 	"selectToken": "Chọn một đồng tiền ảo",
+	"selectChain": "Chọn một chuỗi",
+  	"selectChainCont": "Chọn một chuỗi để tiếp tục.",
 	"searchOrPaste": "Tìm kiếm tên, biểu tượng, hoặc địa chỉ của đồng tiền ảo",
 	"searchOrPasteMobile": "Tên, Biểu tượng, hoặc Địa chỉ",
 	"noExchange": "Không tìm thấy giao dịch",

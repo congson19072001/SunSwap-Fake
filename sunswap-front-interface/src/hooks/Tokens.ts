@@ -1,7 +1,7 @@
 import { parseBytes32String } from '@ethersproject/strings'
-import { Currency, ETHER, Token, currencyEquals } from 'sunswap-sdk'
+import { ChainId, Currency, ETHER, Token, currencyEquals } from 'sunswap-sdk'
 import { useMemo } from 'react'
-import { useSelectedTokenList } from '../state/lists/hooks'
+import { WrappedTokenInfo, useSelectedTokenList } from '../state/lists/hooks'
 import { NEVER_RELOAD, useSingleCallResult } from '../state/multicall/hooks'
 import { useUserAddedTokens } from '../state/user/hooks'
 import { isAddress } from '../utils'
@@ -9,13 +9,23 @@ import { isAddress } from '../utils'
 import { useActiveWeb3React } from './index'
 import { useBytes32TokenContract, useTokenContract } from './useContract'
 
-export function useAllTokens(): { [address: string]: Token } {
-  const { chainId } = useActiveWeb3React()
+export function useAllTokens(otherChainId?: ChainId, onChainId?: ChainId): { [address: string]: Token } {
+  const { chainId } = useActiveWeb3React();
+  let realChainId = chainId;
+  if(onChainId) realChainId = onChainId;
   const userAddedTokens = useUserAddedTokens()
   const allTokens = useSelectedTokenList()
+  let filteredTokens: { [tokenAddress: string]: WrappedTokenInfo } ;
+  if(otherChainId && realChainId){
+    const namesToFilter = Object.values(allTokens[otherChainId]).map(tokenInfo => tokenInfo.name);
+    // get only common tokens on both chains
+    let tempFilteredTokens = Object.entries(allTokens[realChainId]).filter(([address, token]) => namesToFilter.includes(token.name));
+    filteredTokens = Object.fromEntries(tempFilteredTokens);
+
+  } else if(realChainId) filteredTokens = allTokens[realChainId];
 
   return useMemo(() => {
-    if (!chainId) return {}
+    if (!realChainId) return {}
     return (
       userAddedTokens
         // reduce into all ALL_TOKENS filtered by the current chain
@@ -26,10 +36,10 @@ export function useAllTokens(): { [address: string]: Token } {
           },
           // must make a copy because reduce modifies the map, and we do not
           // want to make a copy in every iteration
-          { ...allTokens[chainId] }
+          { ...filteredTokens }
         )
     )
-  }, [chainId, userAddedTokens, allTokens])
+  }, [realChainId, userAddedTokens, allTokens])
 }
 
 // Check if currency is included in custom list from user storage
@@ -51,9 +61,11 @@ function parseStringOrBytes32(str: string | undefined, bytes32: string | undefin
 // undefined if invalid or does not exist
 // null if loading
 // otherwise returns the token
-export function useToken(tokenAddress?: string): Token | undefined | null {
-  const { chainId } = useActiveWeb3React()
-  const tokens = useAllTokens()
+export function useToken(tokenAddress?: string, onChainId?: ChainId): Token | undefined | null {
+  const { chainId } = useActiveWeb3React();
+  let realChainId = chainId;
+  if(onChainId) realChainId = onChainId;
+  const tokens = useAllTokens(undefined, realChainId)
 
   const address = isAddress(tokenAddress)
 
@@ -74,11 +86,11 @@ export function useToken(tokenAddress?: string): Token | undefined | null {
 
   return useMemo(() => {
     if (token) return token
-    if (!chainId || !address) return undefined
+    if (!realChainId || !address) return undefined
     if (decimals.loading || symbol.loading || tokenName.loading) return null
     if (decimals.result) {
       return new Token(
-        chainId,
+        realChainId,
         address,
         decimals.result[0],
         parseStringOrBytes32(symbol.result?.[0], symbolBytes32.result?.[0], 'UNKNOWN'),
@@ -88,7 +100,7 @@ export function useToken(tokenAddress?: string): Token | undefined | null {
     return undefined
   }, [
     address,
-    chainId,
+    realChainId,
     decimals.loading,
     decimals.result,
     symbol.loading,
@@ -101,8 +113,8 @@ export function useToken(tokenAddress?: string): Token | undefined | null {
   ])
 }
 
-export function useCurrency(currencyId: string | undefined): Currency | null | undefined {
+export function useCurrency(currencyId: string | undefined, onChainId?: ChainId): Currency | null | undefined {
   const isETH = currencyId?.toUpperCase() === 'ETH'
-  const token = useToken(isETH ? undefined : currencyId)
+  const token = useToken(isETH ? undefined : currencyId, onChainId)
   return isETH ? ETHER : token
 }

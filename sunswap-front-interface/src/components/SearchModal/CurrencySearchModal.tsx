@@ -1,4 +1,4 @@
-import { Currency } from 'sunswap-sdk'
+import { ChainId, Currency } from 'sunswap-sdk'
 import React, { useCallback, useEffect, useState } from 'react'
 import ReactGA from 'react-ga'
 import useLast from '../../hooks/useLast'
@@ -15,6 +15,7 @@ interface CurrencySearchModalProps {
   onCurrencySelect: (currency: Currency) => void
   otherSelectedCurrency?: Currency | null
   showCommonBases?: boolean
+  otherChainId?: ChainId
 }
 
 export default function CurrencySearchModal({
@@ -23,7 +24,8 @@ export default function CurrencySearchModal({
   onCurrencySelect,
   selectedCurrency,
   otherSelectedCurrency,
-  showCommonBases = false
+  showCommonBases = false,
+  otherChainId
 }: CurrencySearchModalProps) {
   const [listView, setListView] = useState<boolean>(false)
   const lastOpen = useLast(isOpen)
@@ -78,6 +80,7 @@ export default function CurrencySearchModal({
           selectedCurrency={selectedCurrency}
           otherSelectedCurrency={otherSelectedCurrency}
           showCommonBases={showCommonBases}
+          otherChainId={otherChainId}
         />
       )}
     </Modal>

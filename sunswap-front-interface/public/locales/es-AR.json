@@ -16,6 +16,8 @@
 	"unlock": "Desbloquear",
 	"pending": "Pendiente",
 	"selectToken": "Seleccioná un token",
+	"selectChain": "Seleccioná un chain",
+  	"selectChainCont": "Seleccioná un chain para continuar.",
 	"searchOrPaste": "Buscar Token o Pegar Dirección",
 	"noExchange": "No se encontró la divisa",
 	"exchangeRate": "Tasa de Cambio",

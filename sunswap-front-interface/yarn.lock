@@ -14079,10 +14079,10 @@ stylis@^3.5.0:
   resolved "https://registry.yarnpkg.com/stylis/-/stylis-3.5.4.tgz#f665f25f5e299cf3d64654ab949a57c768b73fbe"
   integrity sha512-8/3pSmthWM7lsPBKv7NXkzn2Uc9W7NotcwGNpJaa3k7WMM1XDCA4MgT5k/8BIexd5ydZdboXtU90XH9Ec4Bv/Q==
 
-sunswap-sdk@^0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/sunswap-sdk/-/sunswap-sdk-0.0.5.tgz#ed88720ad0a82cf03b4ecf913c6489127e9c5d08"
-  integrity sha512-eACjIaCrP47PbFjEKvwV8KhK9Wdl5eDDYT9HakOd3z/4chC+/LF1vCnaJz5h/ZyKd3QE9J3iyqKJ8Ie3cDC3DQ==
+sunswap-sdk@0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/sunswap-sdk/-/sunswap-sdk-0.1.0.tgz#670d68577cd24536833f6e537df49e79a25a69f3"
+  integrity sha512-S515C8W5ZejlvlxCb+lwSGQL5fggvrZepswoKZ/WqWPktGLWCDKCDa2NsWjnwc9FVRgSxjHMorvvHnsgYBopQA==
   dependencies:
     "@uniswap/v2-core" "^1.0.0"
     big.js "^5.2.2"

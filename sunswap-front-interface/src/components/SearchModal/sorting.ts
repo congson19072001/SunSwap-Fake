@@ -1,6 +1,7 @@
 import { Token, TokenAmount } from 'sunswap-sdk'
 import { useMemo } from 'react'
 import { useAllTokenBalances } from '../../state/wallet/hooks'
+import { ChainSelect } from '../../connectors'
 
 // compare two token amounts with highest one coming first
 function balanceComparator(balanceA?: TokenAmount, balanceB?: TokenAmount) {
@@ -37,12 +38,35 @@ function getTokenComparator(balances: {
   }
 }
 
+function getChainComparator(): (chainA: ChainSelect, chainB: ChainSelect) => number {
+  return function sortChains(chainA: ChainSelect, chainB: ChainSelect): number {
+
+    if (chainA.chainId && chainB.chainId) {
+      // sort by symbol
+      return chainA.chainId < chainB.chainId ? -1 : 1
+    } else {
+      return chainA.chainId ? -1 : chainB.chainId ? -1 : 0
+    }
+  }
+}
+
 export function useTokenComparator(inverted: boolean): (tokenA: Token, tokenB: Token) => number {
   const balances = useAllTokenBalances()
   const comparator = useMemo(() => getTokenComparator(balances ?? {}), [balances])
   return useMemo(() => {
     if (inverted) {
       return (tokenA: Token, tokenB: Token) => comparator(tokenA, tokenB) * -1
+    } else {
+      return comparator
+    }
+  }, [inverted, comparator])
+}
+
+export function useChainComparator(inverted: boolean): (chainA: ChainSelect, chainB: ChainSelect) => number {
+  const comparator = useMemo(() => getChainComparator(), [])
+  return useMemo(() => {
+    if (inverted) {
+      return (chainA: ChainSelect, chainB: ChainSelect) => comparator(chainA, chainB) * -1
     } else {
       return comparator
     }
