@@ -152,6 +152,10 @@ export class NetworkConnector extends AbstractConnector {
     }, {})
   }
 
+  public providerOf(chainId: number): MiniRpcProvider {
+    return this.providers[chainId]
+  }
+
   public get provider(): MiniRpcProvider {
     return this.providers[this.currentChainId]
   }

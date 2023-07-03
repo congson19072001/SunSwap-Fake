@@ -21,9 +21,7 @@ export function useAllTokens(otherChainId?: ChainId, onChainId?: ChainId): { [ad
     // get only common tokens on both chains
     let tempFilteredTokens = Object.entries(allTokens[realChainId]).filter(([address, token]) => namesToFilter.includes(token.name));
     filteredTokens = Object.fromEntries(tempFilteredTokens);
-
   } else if(realChainId) filteredTokens = allTokens[realChainId];
-
   return useMemo(() => {
     if (!realChainId) return {}
     return (

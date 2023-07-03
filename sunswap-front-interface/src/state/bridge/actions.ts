@@ -10,6 +10,8 @@ export const selectCurrency = createAction<{ field: Field; currencyId: string; i
 export const selectChain = createAction<{ field: Field; chainId: string }>('bridge/selectChain')
 export const switchChains = createAction<void>('bridge/switchChains')
 export const typeInput = createAction<{ field: Field; typedValue: string }>('bridge/typeInput')
+export const updateSwapStatus = createAction<{ status: boolean }>('bridge/updateSwapStatus')
+export const approvedSwap = createAction<{ nonce: number, signature: string }>('bridge/approvedSwap')
 export const replaceBridgeState = createAction<{
   field: Field
   typedValue: string
@@ -17,6 +19,10 @@ export const replaceBridgeState = createAction<{
   outputChainId?: string
   recipient: string | null,
   inputCurrencyId: string,
-  outputCurrencyId: string
+  outputCurrencyId: string,
+  swapped: boolean,
+  signature: string,
+  nonce: number,
+  contract: string
 }>('bridge/replaceBridgeState')
 // export const setRecipient = createAction<{ recipient: string | null }>('bridge/setRecipient')

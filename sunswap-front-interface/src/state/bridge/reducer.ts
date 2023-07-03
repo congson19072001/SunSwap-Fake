@@ -1,7 +1,8 @@
 import { createReducer } from '@reduxjs/toolkit'
-import { Field, replaceBridgeState, selectChain, selectCurrency, switchChains, typeInput } from './actions'
+import { Field, approvedSwap, replaceBridgeState, selectChain, selectCurrency, switchChains, typeInput, updateSwapStatus } from './actions'
 // import { requestSwitchNetwork } from '../../connectors'
 import { WrappedTokenInfo } from '../lists/hooks'
+import { SUPPORTED_BRIDGE } from '../../constants'
 // import { ChainId } from 'sunswap-sdk'
 
 export interface BridgeState {
@@ -17,6 +18,10 @@ export interface BridgeState {
   }
   // the typed recipient address or ENS name, or null if bridge should go to sender
   readonly recipient: string | null
+  readonly swapped: boolean,
+  readonly signature: string,
+  readonly nonce: number,
+  readonly bridgeContract: string | undefined
 }
 
 const initialState: BridgeState = {
@@ -30,14 +35,18 @@ const initialState: BridgeState = {
     chainId: '',
     currencyId: ''
   },
-  recipient: null
+  recipient: null,
+  swapped: false,
+  signature: '',
+  nonce: 0,
+  bridgeContract: undefined
 }
 
 export default createReducer<BridgeState>(initialState, builder =>
   builder
     .addCase(
       replaceBridgeState,
-      (state, { payload: { typedValue, recipient, field, inputChainId, outputChainId, inputCurrencyId, outputCurrencyId  } }) => {
+      (state, { payload: { typedValue, recipient, field, inputChainId, outputChainId, inputCurrencyId, outputCurrencyId, swapped, signature, nonce , contract} }) => {
         return {
           [Field.INPUT]: {
             chainId: inputChainId?.toString(),
@@ -49,7 +58,11 @@ export default createReducer<BridgeState>(initialState, builder =>
           },
           independentField: field,
           typedValue: typedValue,
-          recipient
+          recipient,
+          swapped,
+          signature,
+          nonce,
+          bridgeContract: contract
         }
       }
     )
@@ -84,11 +97,11 @@ export default createReducer<BridgeState>(initialState, builder =>
       const otherField = field === Field.INPUT ? Field.OUTPUT : Field.INPUT;
       const _inputTokens: { [tokenAddress: string]: WrappedTokenInfo } = JSON.parse(inputTokens);
       const _outputTokens: { [tokenAddress: string]: WrappedTokenInfo } = JSON.parse(outputTokens);
-      console.log(currencyId, _inputTokens, _inputTokens[currencyId]);
-      
       const currentCurrencyName = field === Field.INPUT ? _inputTokens[currencyId]?.name : _outputTokens[currencyId]?.name;
       const otherCurrencyId = field === Field.INPUT ? Object.values(_outputTokens).find(token => token?.name === currentCurrencyName)?.address 
       : Object.values(_inputTokens).find(token => token?.name === currentCurrencyName)?.address;
+      const currencySymbol = (field === Field.INPUT ? _inputTokens[currencyId]?.symbol : _outputTokens[currencyId]?.symbol);
+      const bridgeContract = currencySymbol ? SUPPORTED_BRIDGE.get(currencySymbol) : undefined;
       // if (currencyId === state[otherField].currencyId) {
       //   // the case where we have to swap the order
       //   return {
@@ -108,7 +121,8 @@ export default createReducer<BridgeState>(initialState, builder =>
           [otherField]: {
             ...state[otherField],
             currencyId: otherCurrencyId 
-          }
+          },
+          bridgeContract
         }
       // }
     })
@@ -124,6 +138,19 @@ export default createReducer<BridgeState>(initialState, builder =>
           currencyId: state[Field.INPUT].currencyId,
           chainId: state[Field.INPUT].chainId
         }
+      }
+    })
+    .addCase(updateSwapStatus, (state, { payload: { status } }) => {
+      return {
+        ...state,
+        swapped: status
+      }
+    })
+    .addCase(approvedSwap, (state, { payload: { nonce, signature } }) => {
+      return {
+        ...state,
+        signature,
+        nonce
       }
     })
     .addCase(typeInput, (state, { payload: { field, typedValue } }) => {

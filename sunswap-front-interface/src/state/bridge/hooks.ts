@@ -21,6 +21,8 @@ import { ChainSelect, requestSwitchNetwork } from '../../connectors'
 import { MUMBAI_CHAIN } from '../../constants'
 import { useChain } from '../../hooks/Chains'
 import { useCurrency } from '../../hooks/Tokens'
+import { Contract } from 'ethers'
+import { useBridgeContract } from '../../hooks/useContract'
 
 export function useBridgeState(): AppState['bridge'] {
   return useSelector<AppState, AppState['bridge']>(state => state.bridge)
@@ -133,8 +135,12 @@ export function useDerivedBridgeInfo(): {
   currencyBalances: { [field in Field]?: CurrencyAmount }
   parsedAmount: CurrencyAmount | undefined
   // v2Trade: Trade | undefined
-inputError?: string
+  inputError?: string
   // v1Trade: Trade | undefined
+  signature: string | undefined,
+  swapped: boolean,
+  nonce: number,
+  bridge: Contract | undefined
 } {
   const { account } = useActiveWeb3React()
 
@@ -145,6 +151,10 @@ inputError?: string
     typedValue,
     [Field.INPUT]: { chainId: inputChainId, currencyId: inputCurrencyId },
     [Field.OUTPUT]: { chainId: outputChainId, currencyId: outputCurrencyId },
+    signature,
+    swapped,
+    nonce,
+    bridgeContract
     // recipient
   } = useBridgeState()
 
@@ -155,10 +165,16 @@ inputError?: string
   // const recipientLookup = useENS(recipient ?? undefined)
   // const to: string | null = (recipient === null ? account : recipientLookup.address) ?? null
 
-  const relevantTokenBalances = useCurrencyBalances(account ?? undefined, [
-    inputCurrency ?? undefined,
-    outputCurrency ?? undefined
-  ])
+  const relevantTokenBalances = [
+    ...useCurrencyBalances(account ?? undefined, [
+      inputCurrency ?? undefined
+    ], Number(inputChainId)),
+    ...useCurrencyBalances(account ?? undefined, [
+      outputCurrency ?? undefined
+    ], Number(outputChainId))
+  ]
+
+  const bridge = useBridgeContract(bridgeContract, true);
 
   const isExactIn: boolean = independentField === Field.INPUT
   const parsedAmount = tryParseAmount(typedValue, (isExactIn ? inputCurrency : outputCurrency) ?? undefined)
@@ -247,6 +263,10 @@ inputError?: string
     parsedAmount,
     // v2Trade: v2Trade ?? undefined,
     inputError,
+    signature,
+    swapped,
+    nonce,
+    bridge: bridge as Contract | undefined
     // v1Trade
   }
 }

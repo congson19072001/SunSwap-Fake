@@ -1,39 +1,31 @@
-import { CurrencyAmount/*, JSBI*/, Token, Trade } from 'sunswap-sdk'
+import { CurrencyAmount/*, JSBI*/, Token} from 'sunswap-sdk'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { ArrowDown } from 'react-feather'
-import ReactGA from 'react-ga'
 import { Text } from 'rebass'
+import { TransactionResponse } from '@ethersproject/providers'
 import { ThemeContext } from 'styled-components'
 import AddressInputPanel from '../../components/AddressInputPanel'
-import { ButtonError, ButtonLight, ButtonPrimary, ButtonConfirmed } from '../../components/Button'
-import Card, { GreyCard } from '../../components/Card'
+import { Dots } from '../../components/swap/styleds'
+import { ButtonError, ButtonLight, ButtonConfirmed, ButtonPrimary } from '../../components/Button'
 import { AutoColumn } from '../../components/Column'
-import ConfirmSwapModal from '../../components/swap/ConfirmSwapModal'
+import ReactGA from 'react-ga'
 // import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import { AddBridgeSwap } from '../../components/NavigationTabs'
-import { AutoRow, RowBetween } from '../../components/Row'
-import AdvancedSwapDetailsDropdown from '../../components/swap/AdvancedSwapDetailsDropdown'
-// import BetterTradeLink from '../../components/swap/BetterTradeLink'
-import confirmPriceImpactWithoutFee from '../../components/swap/confirmPriceImpactWithoutFee'
-import { ArrowWrapper, BottomGrouping, SwapCallbackError, Wrapper } from '../../components/swap/styleds'
-import TradePrice from '../../components/swap/TradePrice'
+import { AutoRow, RowBetween, RowFixed } from '../../components/Row'
+import { useTransactionAdder } from '../../state/transactions/hooks'
+import TransactionConfirmationModal, { ConfirmationModalContent } from '../../components/TransactionConfirmationModal'
+import { ArrowWrapper, BottomGrouping, Wrapper } from '../../components/swap/styleds'
 import TokenWarningModal from '../../components/TokenWarningModal'
-import ProgressSteps from '../../components/ProgressSteps'
 import { ChainId } from 'sunswap-sdk'
-import {/* BETTER_TRADE_LINK_THRESHOLD, CHAIN_SUPPORTED,*/ INITIAL_ALLOWED_SLIPPAGE } from '../../constants'
-import { getTradeVersion/*, isTradeBetter*/ } from '../../data/V1'
 import { useActiveWeb3React } from '../../hooks'
 import { useCurrency } from '../../hooks/Tokens'
-import { ApprovalState, useApproveCallbackFromTrade } from '../../hooks/useApproveCallback'
-import useENSAddress from '../../hooks/useENSAddress'
-import { useSwapCallback } from '../../hooks/useSwapCallback'
-import useToggledVersion, { Version } from '../../hooks/useToggledVersion'
+import { ApprovalState, useApproveCallbackBridge } from '../../hooks/useApproveCallback'
+// import useENSAddress from '../../hooks/useENSAddress'
 import useWrapCallback, { WrapType } from '../../hooks/useWrapCallback'
-import { useToggleSettingsMenu, useWalletModalToggle } from '../../state/application/hooks'
+import { useWalletModalToggle } from '../../state/application/hooks'
 import { Field } from '../../state/swap/actions'
 import {
   useDefaultsFromURLSearch,
-  useDerivedSwapInfo,
   useSwapActionHandlers,
   useSwapState
 } from '../../state/swap/hooks'
@@ -43,18 +35,18 @@ import {
   useDerivedBridgeInfo,
   useBridgeState
 } from '../../state/bridge/hooks'
-import { useExpertModeManager, useUserDeadline, useUserSlippageTolerance } from '../../state/user/hooks'
-import { LinkStyledButton, TYPE } from '../../theme'
+import { LinkStyledButton/*, TYPE*/ } from '../../theme'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
-import { computeTradePriceBreakdown, warningSeverity } from '../../utils/prices'
+// import { computeTradePriceBreakdown } from '../../utils/prices'
 import AppBody from '../AppBody'
-import { ClickableText } from '../Pool/styleds'
-import Loader from '../../components/Loader'
+// import { ClickableText } from '../Pool/styleds'
+// import Loader from '../../components/Loader'
 import ChainInputPanel from '../../components/ChainInputPanel'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import { useSelectedTokenList } from '../../state/lists/hooks'
 import { requestSwitchNetwork } from '../../connectors'
-// import { ChainSelect } from '../../connectors'
+import { SUPPORTED_BRIDGE } from '../../constants'
+import { ethers } from 'ethers'
 
 export default function Bridge() {
   const loadedUrlParams = useDefaultsFromURLSearch()
@@ -73,72 +65,49 @@ export default function Bridge() {
     setDismissTokenWarning(true)
   }, [])
 
-  const { account } = useActiveWeb3React()
+  const { account, library } = useActiveWeb3React()
   const theme = useContext(ThemeContext)
 
   // toggle wallet when disconnected
   const toggleWalletModal = useWalletModalToggle()
 
-  // for expert mode
-  const toggleSettings = useToggleSettingsMenu()
-  const [isExpertMode] = useExpertModeManager()
-
-  // get custom setting values for user
-  const [deadline] = useUserDeadline()
-  const [allowedSlippage] = useUserSlippageTolerance()
 
   // swap state
   const { recipient } = useSwapState()
 
   const { independentField, typedValue} = useBridgeState();
   const transferredValue = Number(typedValue) * 0.97;
-  const {
-   // currencyBalances,
-    v1Trade,
-    v2Trade,
-//    currencies,
-    inputError: swapInputError
-  } = useDerivedSwapInfo()
 
   const {
     chains,
     currencies,
-    currencyBalances
-   // inputError: bridgeInputError
+    currencyBalances,
+    parsedAmount,
+    inputError: bridgeInputError,
+    bridge
   } = useDerivedBridgeInfo()
-  const { wrapType, execute: onWrap, inputError: wrapInputError } = useWrapCallback(
+  const isValid = !bridgeInputError
+  const { wrapType } = useWrapCallback(
     currencies[Field.INPUT],
     currencies[Field.OUTPUT],
     typedValue
   )
+
+  const parsedAmounts = 
+  {
+        [Field.INPUT]: parsedAmount,
+        [Field.OUTPUT]: parsedAmount
+  }
+  const addTransaction = useTransactionAdder()
+  const [showConfirm, setShowConfirm] = useState<boolean>(false)
+  const [txHash, setTxHash] = useState<string>('')
+  const [attemptingTxn, setAttemptingTxn] = useState(false) // clicked confirm
+  const [signatureData, setSignatureData] = useState<{ v: number; r: string; s: string; deadline: number } | null>(null)
   const showWrap: boolean = wrapType !== WrapType.NOT_APPLICABLE
-  const { address: recipientAddress } = useENSAddress(recipient)
-  const toggledVersion = useToggledVersion()
-  const trade = showWrap
-    ? undefined
-    : {
-        [Version.v1]: v1Trade,
-        [Version.v2]: v2Trade
-      }[toggledVersion]
-  // const betterTradeLinkVersion: Version | undefined =
-  //   toggledVersion === Version.v2 && isTradeBetter(v2Trade, v1Trade, BETTER_TRADE_LINK_THRESHOLD)
-  //     ? Version.v1
-  //     : toggledVersion === Version.v1 && isTradeBetter(v1Trade, v2Trade)
-  //     ? Version.v2
-  //     : undefined
-  // const parsedAmounts = showWrap
-  //   ? {
-  //       [Field.INPUT]: parsedAmount,
-  //       [Field.OUTPUT]: parsedAmount
-  //     }
-  //   : {
-  //       [Field.INPUT]: independentField === Field.INPUT ? parsedAmount : trade?.inputAmount,
-  //       [Field.OUTPUT]: independentField === Field.OUTPUT ? parsedAmount : trade?.outputAmount
-  //     }
+  // const { address: recipientAddress } = useENSAddress(recipient)
 
   const { onChangeRecipient } = useSwapActionHandlers()
   const { onChainSelection, onSwitchChains, onUserInput, onCurrencySelection } = useBridgeActionHandlers()
-  const isValid = !swapInputError
   const dependentField: Field = independentField === Field.INPUT ? Field.OUTPUT : Field.INPUT
 
   const handleTypeInput = useCallback(
@@ -154,44 +123,22 @@ export default function Bridge() {
     [onUserInput]
   )
 
-  // modal and loading
-  const [{ showConfirm, tradeToConfirm, swapErrorMessage, attemptingTxn, txHash }, setSwapState] = useState<{
-    showConfirm: boolean
-    tradeToConfirm: Trade | undefined
-    attemptingTxn: boolean
-    swapErrorMessage: string | undefined
-    txHash: string | undefined
-  }>({
-    showConfirm: false,
-    tradeToConfirm: undefined,
-    attemptingTxn: false,
-    swapErrorMessage: undefined,
-    txHash: undefined
-  })
-
   const formattedAmounts = {
     [independentField]: typedValue,
     [dependentField]: showWrap
       ? (transferredValue > 0 ? transferredValue.toString() : '')
       : (transferredValue > 0 ? (Number(typedValue) * 0.97).toFixed(6) : '')
   }
-  const allTokens = useSelectedTokenList();
-  const inputTokens: string = JSON.stringify(allTokens[chains[Field.INPUT]?.chainId as ChainId]);
-  const outputTokens: string = JSON.stringify(allTokens[chains[Field.OUTPUT]?.chainId as ChainId]);
+  let allTokens = useSelectedTokenList();
+  let inputTokens: string = JSON.stringify(allTokens[chains[Field.INPUT]?.chainId as ChainId]);
+  let outputTokens: string = JSON.stringify(allTokens[chains[Field.OUTPUT]?.chainId as ChainId]);
 
-
-  const route = trade?.route
-  const userHasSpecifiedInputOutput = Boolean(
-    currencies[Field.INPUT] && currencies[Field.OUTPUT] /*&& parsedAmounts[independentField]?.greaterThan(JSBI.BigInt(0))*/
-  )
-  const noRoute = !route
 
   // check whether the user has approved the router on the input token
-  const [approval, approveCallback] = useApproveCallbackFromTrade(trade, allowedSlippage)
+  const [approval, approveCallback] = useApproveCallbackBridge(parsedAmounts[Field.INPUT], SUPPORTED_BRIDGE.get(currencies[Field.INPUT]?.symbol ?? 'WMATIC'))
 
   // check if user has gone through approval process, used to show two step buttons, reset on token change
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
-
   // mark when a user has submitted an approval, reset onTokenSelection for input field
   useEffect(() => {
     if (approval === ApprovalState.PENDING) {
@@ -202,80 +149,16 @@ export default function Bridge() {
   const maxAmountInput: CurrencyAmount | undefined = maxAmountSpend(currencyBalances[Field.INPUT])
   const atMaxAmountInput = Boolean(maxAmountInput /*&& parsedAmounts[Field.INPUT]?.equalTo(maxAmountInput)*/)
 
-  // the callback to execute the swap
-  const { callback: swapCallback, error: swapCallbackError } = useSwapCallback(
-    trade,
-    allowedSlippage,
-    deadline,
-    recipient
-  )
-
-  const { priceImpactWithoutFee } = computeTradePriceBreakdown(trade)
-
-  const handleSwap = useCallback(() => {
-    if (priceImpactWithoutFee && !confirmPriceImpactWithoutFee(priceImpactWithoutFee)) {
-      return
-    }
-    if (!swapCallback) {
-      return
-    }
-    setSwapState({ attemptingTxn: true, tradeToConfirm, showConfirm, swapErrorMessage: undefined, txHash: undefined })
-    swapCallback()
-      .then(hash => {
-        setSwapState({ attemptingTxn: false, tradeToConfirm, showConfirm, swapErrorMessage: undefined, txHash: hash })
-
-        ReactGA.event({
-          category: 'Swap',
-          action:
-            recipient === null
-              ? 'Swap w/o Send'
-              : (recipientAddress ?? recipient) === account
-              ? 'Swap w/o Send + recipient'
-              : 'Swap w/ Send',
-          label: [
-            trade?.inputAmount?.currency?.symbol,
-            trade?.outputAmount?.currency?.symbol,
-            getTradeVersion(trade)
-          ].join('/')
-        })
-      })
-      .catch(error => {
-        setSwapState({
-          attemptingTxn: false,
-          tradeToConfirm,
-          showConfirm,
-          swapErrorMessage: error.message,
-          txHash: undefined
-        })
-      })
-  }, [tradeToConfirm, account, priceImpactWithoutFee, recipient, recipientAddress, showConfirm, swapCallback, trade])
-
-  // errors
-  const [showInverted, setShowInverted] = useState<boolean>(false)
-
-  // warnings on slippage
-  const priceImpactSeverity = warningSeverity(priceImpactWithoutFee)
-
-  // show approve flow when: no error on inputs, not approved or pending, or approved in current session
-  // never show if price impact is above threshold in non expert mode
-  const showApproveFlow =
-    !swapInputError &&
-    (approval === ApprovalState.NOT_APPROVED ||
-      approval === ApprovalState.PENDING ||
-      (approvalSubmitted && approval === ApprovalState.APPROVED)) &&
-    !(priceImpactSeverity > 3 && !isExpertMode)
-
-  const handleConfirmDismiss = useCallback(() => {
-    setSwapState({ showConfirm: false, tradeToConfirm, attemptingTxn, swapErrorMessage, txHash })
+  const handleDismissConfirmation = useCallback(() => {
+    setShowConfirm(false)
+    setSignatureData(null) // important that we clear signature data to avoid bad sigs
     // if there was a tx hash, we want to clear the input
     if (txHash) {
-      onUserInput(Field.INPUT, '')
+      onUserInput(Field.INPUT, '0')
     }
-  }, [attemptingTxn, onUserInput, swapErrorMessage, tradeToConfirm, txHash])
+    setTxHash('')
+  }, [onUserInput, txHash])
 
-  const handleAcceptChanges = useCallback(() => {
-    setSwapState({ tradeToConfirm: trade, swapErrorMessage, txHash, attemptingTxn, showConfirm })
-  }, [attemptingTxn, showConfirm, swapErrorMessage, trade, txHash])
 
   const handleInputSelect = useCallback(
     inputCurrency => {
@@ -288,6 +171,7 @@ export default function Bridge() {
   const handleInputChainSelect = useCallback(
     inputChain => {
       setApprovalSubmitted(false) // reset 2 step UI for approvals
+      inputTokens = JSON.stringify(allTokens[inputChain?.chainId as ChainId]);
       onChainSelection(Field.INPUT, inputChain)
     },
     [onChainSelection]
@@ -297,11 +181,115 @@ export default function Bridge() {
     maxAmountInput && onUserInput(Field.INPUT, maxAmountInput.toExact())
   }, [maxAmountInput, onUserInput])
 
-  // const handleOutputSelect = useCallback(outputCurrency => onCurrencySelection(Field.OUTPUT, outputCurrency), [
-  //   onCurrencySelection
-  // ])
 
-  const handleOutputChainSelect = useCallback(outputChain => onChainSelection(Field.OUTPUT, outputChain), [
+  async function onSwap() {
+    if (approval === ApprovalState.APPROVED) {
+      // sưap over bridge
+      const liquidityAmount = parsedAmounts[Field.INPUT]
+      if (!liquidityAmount) throw new Error('missing swap amount')
+      // // try to gather a signature for permission
+      if(!bridge) throw new Error('missing bridge')
+      if(!account || !library) throw new Error('missing library')
+      let nonce = 0;
+      let isUsedNonce = await bridge.callStatic.processedNonces(account, nonce);
+      while(isUsedNonce){
+        nonce++;
+        isUsedNonce = await bridge.callStatic.processedNonces(account, nonce);
+      }
+      const amountToBurn = ethers.BigNumber.from(parsedAmounts[Field.OUTPUT]?.raw.toString());
+      const encodedData = ethers.utils.solidityKeccak256(['address', 'address', 'uint256', 'uint256'], [account, account, amountToBurn, nonce]);
+      const signer = library?.getSigner(account);
+      const signature = await signer?.signMessage(encodedData);
+      const safeGasEstimate = await bridge.estimateGas['burn'](account, amountToBurn, nonce, signature);
+      await bridge['burn'](account, amountToBurn, nonce, signature, {
+        gasLimit: safeGasEstimate
+      }) .then((response: TransactionResponse) => {
+        setAttemptingTxn(false)
+        addTransaction(response, {
+          summary:
+            'Burn ' +
+            parsedAmounts[Field.INPUT]?.toSignificant(3) +
+            ' ' +
+            currencies[Field.INPUT]?.symbol +
+            ' and received ' +
+            parsedAmounts[Field.OUTPUT]?.toSignificant(3) +
+            ' ' +
+            currencies[Field.OUTPUT]?.symbol
+        })
+
+        setTxHash(response.hash)
+
+        ReactGA.event({
+          category: 'Bridge',
+          action: 'Transfer',
+          label: [currencies[Field.INPUT]?.symbol, currencies[Field.OUTPUT]?.symbol].join('/')
+        })
+      })
+      .catch((error: Error) => {
+        setAttemptingTxn(false)
+        // we only care if the error is something _other_ than the user rejected the tx
+        console.error(error)
+      })
+    } else {
+      throw new Error('Attempting to confirm without approval. Please contact support.')
+    }
+
+  }
+
+
+  function modalHeader() {
+    return (
+      <AutoColumn gap={'md'} style={{ marginTop: '20px' }}>
+        <RowBetween align="flex-end">
+          <Text fontSize={24} fontWeight={500}>
+            {parsedAmounts[Field.INPUT]?.toSignificant(6)}
+          </Text>
+          <RowFixed gap="4px">
+            <Text fontSize={24} fontWeight={500} style={{ marginLeft: '10px' }}>
+              {currencies[Field.INPUT]?.symbol}
+            </Text>
+          </RowFixed>
+        </RowBetween>
+        <RowFixed>
+          <Text fontSize={12} fontWeight={300}>
+            {`From Chain ${chains[Field.INPUT]?.chainId} to Chain ${chains[Field.OUTPUT]?.chainId}`}
+          </Text>
+        </RowFixed>
+        <RowBetween align="flex-end">
+          <Text fontSize={24} fontWeight={500}>
+            {formattedAmounts[Field.OUTPUT]}
+          </Text>
+          <RowFixed gap="4px">
+            <Text fontSize={24} fontWeight={500} style={{ marginLeft: '10px' }}>
+              {currencies[Field.INPUT]?.symbol}
+            </Text>
+          </RowFixed>
+        </RowBetween>
+      </AutoColumn>
+    )
+  }
+
+  const pendingText = `Transfering ${parsedAmounts[Field.INPUT]?.toSignificant(6)} ${
+    currencies[Field.INPUT]?.symbol
+  } and ${parsedAmounts[Field.OUTPUT]?.toSignificant(6)} ${currencies[Field.OUTPUT]?.symbol}`
+
+  function modalBottom() {
+    return (
+      <>
+        <ButtonPrimary disabled={!(approval === ApprovalState.APPROVED || signatureData !== null)} onClick={onSwap}>
+          <Text fontWeight={500} fontSize={20}>
+            Confirm
+          </Text>
+        </ButtonPrimary>
+      </>
+    )
+  }
+
+  const handleOutputChainSelect = useCallback(outputChain => {
+    outputTokens = JSON.stringify(allTokens[outputChain?.chainId as ChainId]);
+    onChainSelection(Field.OUTPUT, outputChain)
+  }
+    , [
     onCurrencySelection
   ])
 
@@ -315,23 +303,25 @@ export default function Bridge() {
       <AppBody>
         <AddBridgeSwap />
         <Wrapper id="swap-page">
-          <ConfirmSwapModal
+          <TransactionConfirmationModal
             isOpen={showConfirm}
-            trade={trade}
-            originalTrade={tradeToConfirm}
-            onAcceptChanges={handleAcceptChanges}
+            onDismiss={handleDismissConfirmation}
             attemptingTxn={attemptingTxn}
-            txHash={txHash}
-            recipient={recipient}
-            allowedSlippage={allowedSlippage}
-            onConfirm={handleSwap}
-            swapErrorMessage={swapErrorMessage}
-            onDismiss={handleConfirmDismiss}
+            hash={txHash ? txHash : ''}
+            content={() => (
+              <ConfirmationModalContent
+                title={'You will Transfer below tokens cross-chain'}
+                onDismiss={handleDismissConfirmation}
+                topContent={modalHeader}
+                bottomContent={modalBottom}
+              />
+            )}
+            pendingText={pendingText}
           />
 
           <AutoColumn gap={'md'}>
             <ChainInputPanel
-              label={independentField === Field.OUTPUT && !showWrap && trade ? 'From (estimated)' : 'From'}
+              label={independentField === Field.OUTPUT && !showWrap ? 'From (estimated)' : 'From'}
               value={formattedAmounts[Field.INPUT]}
               showMaxButton={!atMaxAmountInput}
               chain={chains[Field.INPUT]}
@@ -344,7 +334,7 @@ export default function Bridge() {
               type={Field.INPUT}
             />
              <CurrencyInputPanel
-              label={independentField === Field.OUTPUT && !showWrap && trade ? 'From (estimated)' : 'From'}
+              label={independentField === Field.OUTPUT && !showWrap ? 'From (estimated)' : 'From'}
               value={formattedAmounts[Field.INPUT]}
               showMaxButton={!atMaxAmountInput}
               currency={currencies[Field.INPUT]}
@@ -357,19 +347,20 @@ export default function Bridge() {
               otherChainId={chains[Field.OUTPUT]?.chainId ?? 1}
             />
             <AutoColumn justify="space-between">
-              <AutoRow justify={isExpertMode ? 'space-between' : 'center'} style={{ padding: '0 1rem' }}>
+              <AutoRow justify={'center'} style={{ padding: '0 1rem' }}>
                 <ArrowWrapper clickable>
                   <ArrowDown
                     size="16"
                     onClick={async() => {
                       setApprovalSubmitted(false) // reset 2 step UI for approvals
                       await requestSwitchNetwork(chains[Field.OUTPUT]?.chainId ?? 1);
+
                       onSwitchChains()
                     }}
                     color={currencies[Field.INPUT] && currencies[Field.OUTPUT] ? theme.primary1 : theme.text2}
                   />
                 </ArrowWrapper>
-                {recipient === null && !showWrap && isExpertMode ? (
+                {recipient === null && !showWrap  ? (
                   <LinkStyledButton id="add-recipient-button" onClick={() => onChangeRecipient('')}>
                     + Add a send (optional)
                   </LinkStyledButton>
@@ -379,7 +370,7 @@ export default function Bridge() {
             <ChainInputPanel
               value={formattedAmounts[Field.OUTPUT]}
               onUserInput={handleTypeOutput}
-              label={independentField === Field.INPUT && !showWrap && trade ? 'To (estimated)' : 'To'}
+              label={independentField === Field.INPUT && !showWrap ? 'To (estimated)' : 'To'}
               currency={currencies[Field.OUTPUT]}
               showMaxButton={false}
               chain={chains[Field.OUTPUT]}
@@ -396,137 +387,53 @@ export default function Bridge() {
                   <ArrowWrapper clickable={false}>
                     <ArrowDown size="16" color={theme.text2} />
                   </ArrowWrapper>
-                  <LinkStyledButton id="remove-recipient-button" onClick={() => onChangeRecipient(null)}>
-                    - Remove send
+                  <LinkStyledButton id="swap-recipient-button" onClick={() => onChangeRecipient(null)}>
+                    - Swap send
                   </LinkStyledButton>
                 </AutoRow>
                 <AddressInputPanel id="recipient" value={recipient} onChange={onChangeRecipient} />
               </>
             ) : null}
-
-            {showWrap ? null : (
-              <Card padding={'.25rem .75rem 0 .75rem'} borderRadius={'20px'}>
-                <AutoColumn gap="4px">
-                  {Boolean(trade) && (
-                    <RowBetween align="center">
-                      <Text fontWeight={500} fontSize={14} color={theme.text2}>
-                        Price
-                      </Text>
-                      <TradePrice
-                        price={trade?.executionPrice}
-                        showInverted={showInverted}
-                        setShowInverted={setShowInverted}
-                      />
-                    </RowBetween>
-                  )}
-                  {allowedSlippage !== INITIAL_ALLOWED_SLIPPAGE && (
-                    <RowBetween align="center">
-                      <ClickableText fontWeight={500} fontSize={14} color={theme.text2} onClick={toggleSettings}>
-                        Slippage Tolerance
-                      </ClickableText>
-                      <ClickableText fontWeight={500} fontSize={14} color={theme.text2} onClick={toggleSettings}>
-                        {allowedSlippage / 100}%
-                      </ClickableText>
-                    </RowBetween>
-                  )}
-                </AutoColumn>
-              </Card>
-            )}
           </AutoColumn>
           <BottomGrouping>
-            {!account ? (
-              <ButtonLight onClick={toggleWalletModal}>Connect Wallet</ButtonLight>
-            ) : showWrap ? (
-              <ButtonPrimary disabled={Boolean(wrapInputError)} onClick={onWrap}>
-                {wrapInputError ??
-                  (wrapType === WrapType.WRAP ? 'Wrap' : wrapType === WrapType.UNWRAP ? 'Unwrap' : null)}
-              </ButtonPrimary>
-            ) : noRoute && userHasSpecifiedInputOutput ? (
-              <GreyCard style={{ textAlign: 'center' }}>
-                <TYPE.main mb="4px">Insufficient liquidity for this trade.</TYPE.main>
-              </GreyCard>
-            ) : showApproveFlow ? (
-              <RowBetween>
-                <ButtonConfirmed
-                  onClick={approveCallback}
-                  disabled={approval !== ApprovalState.NOT_APPROVED || approvalSubmitted}
-                  width="48%"
-                  altDisabledStyle={approval === ApprovalState.PENDING} // show solid button while waiting
-                  confirmed={approval === ApprovalState.APPROVED}
-                >
-                  {approval === ApprovalState.PENDING ? (
-                    <AutoRow gap="6px" justify="center">
-                      Approving <Loader stroke="white" />
-                    </AutoRow>
-                  ) : approvalSubmitted && approval === ApprovalState.APPROVED ? (
-                    'Approved'
-                  ) : (
-                    'Approve ' + currencies[Field.INPUT]?.symbol
-                  )}
-                </ButtonConfirmed>
-                <ButtonError
-                  onClick={() => {
-                    if (isExpertMode) {
-                      handleSwap()
-                    } else {
-                      setSwapState({
-                        tradeToConfirm: trade,
-                        attemptingTxn: false,
-                        swapErrorMessage: undefined,
-                        showConfirm: true,
-                        txHash: undefined
-                      })
-                    }
-                  }}
-                  width="48%"
-                  id="swap-button"
-                  disabled={
-                    !isValid || approval !== ApprovalState.APPROVED || (priceImpactSeverity > 3 && !isExpertMode)
-                  }
-                  error={isValid && priceImpactSeverity > 2}
-                >
-                  <Text fontSize={16} fontWeight={500}>
-                    {priceImpactSeverity > 3 && !isExpertMode
-                      ? `Price Impact High`
-                      : `Swap${priceImpactSeverity > 2 ? ' Anyway' : ''}`}
-                  </Text>
-                </ButtonError>
-              </RowBetween>
-            ) : (
-              <ButtonError
-                onClick={() => {
-                  if (isExpertMode) {
-                    handleSwap()
-                  } else {
-                    setSwapState({
-                      tradeToConfirm: trade,
-                      attemptingTxn: false,
-                      swapErrorMessage: undefined,
-                      showConfirm: true,
-                      txHash: undefined
-                    })
-                  }
-                }}
-                id="swap-button"
-                disabled={!isValid || (priceImpactSeverity > 3 && !isExpertMode) || !!swapCallbackError}
-                error={isValid && priceImpactSeverity > 2 && !swapCallbackError}
-              >
-                <Text fontSize={20} fontWeight={500}>
-                  {swapInputError
-                    ? swapInputError
-                    : priceImpactSeverity > 3 && !isExpertMode
-                    ? `Price Impact Too High`
-                    : `Swap${priceImpactSeverity > 2 ? ' Anyway' : ''}`}
-                </Text>
-              </ButtonError>
-            )}
-            {showApproveFlow && <ProgressSteps steps={[approval === ApprovalState.APPROVED]} />}
-            {isExpertMode && swapErrorMessage ? <SwapCallbackError error={swapErrorMessage} /> : null}
-            {/* {betterTradeLinkVersion && <BetterTradeLink version={betterTradeLinkVersion} />} */}
+          <div style={{ position: 'relative' }}>
+              {!account ? (
+                <ButtonLight onClick={toggleWalletModal}>Connect Wallet</ButtonLight>
+              ) : (
+                <RowBetween>
+                  <ButtonConfirmed
+                    onClick={approveCallback}
+                    confirmed={approval === ApprovalState.APPROVED || signatureData !== null}
+                    disabled={approval !== ApprovalState.NOT_APPROVED || signatureData !== null}
+                    mr="0.5rem"
+                    fontWeight={500}
+                    fontSize={16}
+                  >
+                    {approval === ApprovalState.PENDING ? (
+                      <Dots>Approving</Dots>
+                    ) : approval === ApprovalState.APPROVED || signatureData !== null ? (
+                      'Approved'
+                    ) : (
+                      'Approve'
+                    )}
+                  </ButtonConfirmed>
+                  <ButtonError
+                    onClick={() => {
+                      setShowConfirm(true)
+                    }}
+                    disabled={!isValid || (signatureData === null && approval !== ApprovalState.APPROVED)}
+                    error={!isValid && !!parsedAmounts[Field.INPUT] && !!parsedAmounts[Field.OUTPUT]}
+                  >
+                    <Text fontSize={16} fontWeight={500}>
+                      {bridgeInputError || 'Swap'}
+                    </Text>
+                  </ButtonError>
+                </RowBetween>
+              )}
+            </div>
           </BottomGrouping>
         </Wrapper>
       </AppBody>
-      <AdvancedSwapDetailsDropdown trade={trade} />
     </>
   )
 }

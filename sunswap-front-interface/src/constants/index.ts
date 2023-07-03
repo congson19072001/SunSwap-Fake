@@ -109,6 +109,12 @@ export const CHAIN_SUPPORTED: ChainList = {
 }
 
 
+export const SUPPORTED_BRIDGE: ReadonlyMap<string, string> = new Map([
+  ['WBNB', '0x7EAA5A493E10aA0E0A1780f289534a90A0E5C401'],
+  ['WMATIC', '0x7BDAC38bd75D23a0e13C17E4a1b5843d3DBdBa8b']
+]);
+
+
 // used to construct intermediary pairs for trading
 export const BASES_TO_CHECK_TRADES_AGAINST: ChainTokenList = {
   ...WETH_ONLY,

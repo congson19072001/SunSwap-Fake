@@ -3,11 +3,16 @@ import { useActiveWeb3React } from '../../hooks'
 import { addPopup, PopupContent, removePopup, toggleWalletModal, toggleSettingsMenu } from './actions'
 import { useSelector, useDispatch } from 'react-redux'
 import { AppState } from '../index'
+import { ChainId } from 'sunswap-sdk'
 
-export function useBlockNumber(): number | undefined {
+export function useBlockNumber(onChainId?: ChainId): number | undefined {
   const { chainId } = useActiveWeb3React()
+  let realChainId = chainId;
+  if(onChainId) {
+    realChainId = onChainId;
+  }
 
-  return useSelector((state: AppState) => state.application.blockNumber[chainId ?? -1])
+  return useSelector((state: AppState) => state.application.blockNumber[realChainId ?? -1])
 }
 
 export function useWalletModalOpen(): boolean {

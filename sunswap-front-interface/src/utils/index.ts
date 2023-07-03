@@ -7,6 +7,7 @@ import { abi as IUniswapV2Router02ABI } from '@uniswap/v2-periphery/build/IUnisw
 import { ROUTER_ADDRESS } from '../constants'
 import { ChainId, JSBI, Percent, Token, CurrencyAmount, Currency, ETHER } from 'sunswap-sdk'
 import { TokenAddressMap } from '../state/lists/hooks'
+import { ethers } from 'ethers'
 
 // returns the checksummed address if the address is valid, otherwise returns false
 export function isAddress(value: any): string | false {
@@ -85,12 +86,18 @@ export function getProviderOrSigner(library: Web3Provider, account?: string): We
   return account ? getSigner(library, account) : library
 }
 
+export function getProviderOrSignerJsonRpcProvider(library: ethers.providers.JsonRpcProvider, account?: string): ethers.providers.JsonRpcProvider | JsonRpcSigner {
+  return account ? library.getSigner(account).connectUnchecked() : library;
+}
+
 // account is optional
-export function getContract(address: string, ABI: any, library: Web3Provider, account?: string): Contract {
+export function getContract(address: string, ABI: any, library: Web3Provider | ethers.providers.JsonRpcProvider, account?: string): Contract {
   if (!isAddress(address) || address === AddressZero) {
     throw Error(`Invalid 'address' parameter '${address}'.`)
   }
-
+  if(library instanceof ethers.providers.JsonRpcProvider) {
+    return new Contract(address, ABI, getProviderOrSignerJsonRpcProvider(library, account) as any)
+  }
   return new Contract(address, ABI, getProviderOrSigner(library, account) as any)
 }
 
