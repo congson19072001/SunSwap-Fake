@@ -1,0 +1,152 @@
+{
+    "name": "SunSwap V1",
+    "timestamp": "2023-06-11T13:31:22.024Z",
+    "version": {
+        "major": 1,
+        "minor": 1,
+        "patch": 0
+    },
+    "logoURI": "ipfs://Qmeo2roSMUnqcHDUr9jFNpejRRbjXWBQdHKgZGDpsTJ4DD",
+    "keywords": [
+        "sunswap",
+        "default"
+    ],
+    "tokens": [
+        {
+            "chainId": 1,
+            "name": "WETH",
+            "address": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+            "symbol": "WETH",
+            "decimals": 18,
+            "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/2396.png"
+        },
+        {
+            "chainId": 1,
+            "name": "Tether",
+            "address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+            "symbol": "USDT",
+            "decimals": 6,
+            "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png"
+        },
+        {
+            "chainId": 1,
+            "name": "0xBitcoin",
+            "address": "0xb6ed7644c69416d67b522e20bc294a9a9b405b31",
+            "symbol": "0xBTC",
+            "decimals": 8,
+            "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/2837.png"
+        },
+        {
+            "chainId": 1,
+            "name": "Dai",
+            "address": "0x6b175474e89094c44da98b954eedeac495271d0f",
+            "symbol": "DAI",
+            "decimals": 18,
+            "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/4943.png"
+        },
+        {
+            "chainId": 1,
+            "name": "USD Coin",
+            "address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+            "symbol": "USDC",
+            "decimals": 6,
+            "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/3408.png"
+        },
+        {
+            "chainId": 80001,
+            "name": "Wrapped Ethereum",
+            "address": "0xFAd46E603A294a0eAc73DDC02D7ef30443a89414",
+            "symbol": "WETH",
+            "decimals": 18,
+            "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/2396.png"
+        },
+        {
+            "chainId": 80001,
+            "name": "SHIBA INU",
+            "address": "0xd55D28217fc399D588467B92DFF9D4AAD65B0fE8",
+            "symbol": "SHIB",
+            "decimals": 18,
+            "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/5994.png"
+        },
+        {
+            "chainId": 80001,
+            "name": "BNB",
+            "address": "0x3C0F3004631a99F7b96F59710e093Aa13a35E9B0",
+            "symbol": "BNB",
+            "decimals": 18,
+            "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png"
+        },
+        {
+            "chainId": 80001,
+            "name": "Dai Stablecoin",
+            "address": "0x7a5BBb6463D7eD92d061C4F193998a025317c025",
+            "symbol": "DAI",
+            "decimals": 18,
+            "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/4943.png"
+        },
+        {
+            "chainId": 80001,
+            "name": "USD Coin",
+            "address": "0x73a9078a90C7317698c3eb5071E71BF4e428fAE3",
+            "symbol": "USDC",
+            "decimals": 6,
+            "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/3408.png"
+        },
+        {
+            "chainId": 80001,
+            "name": "Tether USD",
+            "address": "0x55489cBeBBd99B3Ba7052b8455d2ACD34C237fBC",
+            "symbol": "USDT",
+            "decimals": 6,
+            "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png"
+        },
+        {
+            "chainId": 80001,
+            "name": "ChainLink Token",
+            "address": "0x588B1C7be2658a6AD7f84a8C05ec8acA0283B1d1",
+            "symbol": "LINK",
+            "decimals": 18,
+            "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/1975.png"
+        },
+        {
+            "chainId": 80001,
+            "name": "Wrapped Matic",
+            "address": "0x2eb27768a44D0ab5757467d4228c5B3161dFCd32",
+            "symbol": "WMATIC",
+            "decimals": 18,
+            "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/3890.png"
+        },
+        {
+            "chainId": 80001,
+            "name": "Wrapped BNB",
+            "address": "0x6B947e4Ce05d0b5E1ffD2eD3EF76539213F8b00d",
+            "symbol": "WBNB",
+            "decimals": 18,
+            "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png"
+        },
+        {
+            "chainId": 97,
+            "name": "Wrapped Matic",
+            "address": "0x2eb27768a44D0ab5757467d4228c5B3161dFCd32",
+            "symbol": "WMATIC",
+            "decimals": 18,
+            "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/3890.png"
+        },
+        {
+            "chainId": 97,
+            "name": "Wrapped BNB",
+            "address": "0x6B947e4Ce05d0b5E1ffD2eD3EF76539213F8b00d",
+            "symbol": "WBNB",
+            "decimals": 18,
+            "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png"
+        },
+        {
+            "chainId": 97,
+            "name": "Wrapped Ethereum",
+            "address": "0x1d8eBAF2478067128dA314a9cce05F37B90874dF",
+            "symbol": "WETH",
+            "decimals": 18,
+            "logoURI": "https://s2.coinmarketcap.com/static/img/coins/64x64/2396.png"
+        }
+    ]
+}
