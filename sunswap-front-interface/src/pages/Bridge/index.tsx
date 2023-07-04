@@ -76,7 +76,7 @@ export default function Bridge() {
   const { recipient } = useSwapState()
 
   const { independentField, typedValue} = useBridgeState();
-  const transferredValue = Number(typedValue) * 0.97;
+  const transferredValue = Number(typedValue);
 
   const {
     chains,
@@ -127,7 +127,7 @@ export default function Bridge() {
     [independentField]: typedValue,
     [dependentField]: showWrap
       ? (transferredValue > 0 ? transferredValue.toString() : '')
-      : (transferredValue > 0 ? (Number(typedValue) * 0.97).toFixed(6) : '')
+      : (transferredValue > 0 ? Number(typedValue).toFixed(6) : '')
   }
   let allTokens = useSelectedTokenList();
   let inputTokens: string = JSON.stringify(allTokens[chains[Field.INPUT]?.chainId as ChainId]);
@@ -257,7 +257,7 @@ export default function Bridge() {
         </RowBetween>
         <RowFixed>
           <Text fontSize={12} fontWeight={300}>
-            {`From Chain ${chains[Field.INPUT]?.chainId} to Chain ${chains[Field.OUTPUT]?.chainId}`}
+            {`From Chain ${chains[Field.INPUT]?.name} to Chain ${chains[Field.OUTPUT]?.name}`}
           </Text>
         </RowFixed>
         <RowBetween align="flex-end">

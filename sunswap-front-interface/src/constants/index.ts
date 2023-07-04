@@ -67,44 +67,54 @@ const WETH_ONLY: ChainTokenList = {
 export class ChainFinal{
   chainId: ChainId;
   img: string;
+  name: string;
 }
 
 export const CHAIN_SUPPORTED: ChainList = {
   [ChainId.MAINNET]: [{
     chainId: ChainId.MAINNET,
-    img: ""
+    img: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
+    name: "Ethereum Mainnet",
   }],
   [ChainId.ROPSTEN]: [{
     chainId: ChainId.ROPSTEN,
-    img: ""
+    img: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
+    name: "Ropsten Testnet",
   }],
   [ChainId.RINKEBY]: [{
     chainId: ChainId.RINKEBY,
-    img: ""
+    img: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
+    name: "Rinkeby Testnet",
   }],
   [ChainId.GÖRLI]: [{
     chainId: ChainId.GÖRLI,
-    img: ""
+    img: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
+    name: "Görli Testnet",
   }],
   [ChainId.KOVAN]: [{
     chainId: ChainId.KOVAN,
-    img: ""
+    img: "https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png",
+    name: "Kovan Testnet",
   }],
   [ChainId.POLYGON]: [{
     chainId: ChainId.POLYGON,
-    img: ""
+    img: "https://s2.coinmarketcap.com/static/img/coins/64x64/3890.png",
+    name: "Polygon Mainnet",
   }],
   [ChainId.POLYGON_MUMBAI]: [{
     chainId: ChainId.POLYGON_MUMBAI,
-    img: ""
+    img: "https://s2.coinmarketcap.com/static/img/coins/64x64/3890.png",
+    name: "Polygon Mumbai Testnet",
   }],
   [ChainId.BINANCE]: [{
     chainId: ChainId.BINANCE,
-    img: ""
+    img: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png",
+    name: "Binance Chain",
   }],
   [ChainId.BINANCE_TESTNET]: [{
     chainId: ChainId.BINANCE_TESTNET,
-    img: ""
+    img: "https://s2.coinmarketcap.com/static/img/coins/64x64/1839.png",
+    name: "Binance Chain Testnet",
   }]
 }
 
@@ -163,7 +173,8 @@ export const PINNED_PAIRS: { readonly [chainId in ChainId]?: [Token, Token][] } 
 
 export const MUMBAI_CHAIN: ChainSelect = {
   chainId: 80001,
-  img: ""
+  img: "https://s2.coinmarketcap.com/static/img/coins/64x64/3890.png",
+  name: "Polygon Mumbai Testnet",
 }
 
 export interface WalletInfo {

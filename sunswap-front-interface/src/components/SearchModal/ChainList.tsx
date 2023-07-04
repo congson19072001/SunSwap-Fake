@@ -40,8 +40,8 @@ function ChainRow({
     >
       <img src={chain.img} width={'24px'} height={'24px'} />
       <Column>
-        <Text title={chain.chainId + ''} fontWeight={500}>
-          {chain.chainId}
+        <Text title={chain.name + ''} fontWeight={500}>
+          {chain.name}
         </Text>
       </Column>
     </MenuItem>

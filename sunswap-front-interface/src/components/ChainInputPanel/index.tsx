@@ -227,7 +227,7 @@ export default function ChainInputPanel({
                 </StyledTokenName>
               ) : (
                 <StyledTokenName className="token-symbol-container" active={Boolean(chain && chain.chainId)}>
-                  {(chain?.chainId) || t('selectChain')}
+                  {(chain?.name) || t('selectChain')}
                 </StyledTokenName>
               )}
               {!disableCurrencySelect && <StyledDropDown selected={!!chain} />}

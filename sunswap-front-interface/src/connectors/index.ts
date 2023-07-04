@@ -37,11 +37,12 @@ export function getNetworkLibrary(): Web3Provider {
 }
 
 export const injected = new InjectedConnector({
-  supportedChainIds: [1, 3, 4, 5, 42, 80001, 97, 56]
+  supportedChainIds: [1, 3, 4, 5, 42, 137, 80001, 97, 56]
 })
 
 export interface ChainSelect {
-  chainId: number
+  chainId: number,
+  name: string,
   img: string
 }
 // type IAllowedNetwork = '0x89' | '0x13881'
@@ -74,7 +75,9 @@ export async function requestSwitchNetwork(chainId: number) {
 
 // mainnet only
 export const walletconnect = new WalletConnectConnector({
-  rpc: { 80001: NETWORK_URL },
+  rpc: { 
+    80001: NETWORK_URL,
+  },
   bridge: 'https://bridge.walletconnect.org',
   qrcode: true,
   pollingInterval: 5000

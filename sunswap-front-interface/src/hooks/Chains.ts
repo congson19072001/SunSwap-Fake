@@ -1,25 +1,27 @@
 import { useMemo } from "react";
 import { ChainSelect } from "../connectors";
-import { ChainId } from "sunswap-sdk";
-import { MUMBAI_CHAIN } from "../constants";
+import { CHAIN_SUPPORTED, MUMBAI_CHAIN } from "../constants";
 
 export function useAllChains(){
     const chains: ChainSelect[] = useMemo(() => {
-        const chain_ids = Object.values(ChainId).filter(id =>  typeof id === "number").map(id => Number(id));
-        return chain_ids.map(id => ({
-            chainId: id,
-            img: ""
-        }))
+        return Object.values(CHAIN_SUPPORTED).map(([chain]) => {
+            return {
+                chainId: chain.chainId,
+                img: chain.img,
+                name: chain.name
+            };
+        });
     }, []);
-    return chains
+    return chains;
 }
 
 export function useChain(chainId: string | undefined): ChainSelect | null | undefined {
-    const isMumbai = chainId === '80001'
-    const chain: ChainSelect | undefined = chainId ? {
-        chainId: Number(chainId),
-        img: ""
-    } : undefined
+    const isMumbai = chainId === '80001';
+    let chain: ChainSelect | undefined = undefined;
+    if (chainId) {
+        const chains = Object.values(CHAIN_SUPPORTED).find(([chain]) => chain.chainId === Number(chainId));
+        chain = chains ? chains[0] : undefined;
+    }
     return isMumbai ? MUMBAI_CHAIN : chain
   }
   
