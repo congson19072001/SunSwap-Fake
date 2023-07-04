@@ -197,9 +197,14 @@ export default function Bridge() {
         isUsedNonce = await bridge.callStatic.processedNonces(account, nonce);
       }
       const amountToBurn = ethers.BigNumber.from(parsedAmounts[Field.OUTPUT]?.raw.toString());
-      const encodedData = ethers.utils.solidityKeccak256(['address', 'address', 'uint256', 'uint256'], [account, account, amountToBurn, nonce]);
-      const signer = library?.getSigner(account);
-      const signature = await signer?.signMessage(encodedData);
+      const encodedData = ethers.utils.solidityPack(['address', 'address', 'uint256', 'uint256'], [account, account, amountToBurn, nonce]);
+      const hash = ethers.utils.keccak256(encodedData);
+      console.log(hash);
+      // const signer = library?.getSigner(account);
+      const signature = await library.send('personal_sign', [
+        hash,
+        account,
+      ]);
       const safeGasEstimate = await bridge.estimateGas['burn'](account, amountToBurn, nonce, signature);
       await bridge['burn'](account, amountToBurn, nonce, signature, {
         gasLimit: safeGasEstimate
