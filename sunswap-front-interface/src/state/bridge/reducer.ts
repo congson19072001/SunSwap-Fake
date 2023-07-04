@@ -68,7 +68,7 @@ export default createReducer<BridgeState>(initialState, builder =>
     )
     .addCase(selectChain, (state, { payload: { chainId, field } }) => {
       const otherField = field === Field.INPUT ? Field.OUTPUT : Field.INPUT
-      if (chainId == state[otherField].chainId) {
+      if (chainId === state[otherField].chainId) {
         // the case where we have to bridge the order
         return {
           ...state,

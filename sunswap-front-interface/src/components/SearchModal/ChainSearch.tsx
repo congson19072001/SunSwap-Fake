@@ -62,6 +62,7 @@ export function ChainSearch({
 
   const isAddressSearch = isAddress(searchQuery)
   const searchToken = useToken(searchQuery)
+  console.log('searchToken', searchToken)
 
   useEffect(() => {
     if (isAddressSearch) {
@@ -76,9 +77,8 @@ export function ChainSearch({
   const chainComparator = useChainComparator(invertSearchOrder)
 
   const filteredChains: ChainSelect[] = useMemo(() => {
-    // if (isAddressSearch) return searchToken ? [searchToken] : []
     return filterChains(Object.values(allChains), searchQuery)
-  }, [isAddressSearch/*, searchToken*/, allChains, searchQuery])
+  }, [allChains, searchQuery])
 
   const filteredSortedChains: ChainSelect[] = useMemo(() => {
     // if (searchToken) return [searchToken]
@@ -90,12 +90,10 @@ export function ChainSearch({
     if (symbolMatch.length > 1) return sorted
 
     return [
-      // ...(searchToken ? [searchToken] : []),
-      // sort any exact symbol matches first
       ...sorted.filter(chain => chain.chainId?.toString() === symbolMatch[0]),
       ...sorted.filter(chain => chain.chainId?.toString() !== symbolMatch[0])
     ]
-  }, [filteredChains, searchQuery, searchToken, chainComparator])
+  }, [filteredChains, searchQuery, chainComparator])
 
   // clear the input on open
   useEffect(() => {

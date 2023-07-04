@@ -33,7 +33,7 @@ function useContract(address: string | undefined, ABI: any, withSignerIfPossible
       console.error('Failed to get contract', error)
       return null
     }
-  }, [address, ABI, library, withSignerIfPossible, account])
+  }, [address, ABI, realLibrary, withSignerIfPossible, account])
 }
 
 export function useV1FactoryContract(): Contract | null {

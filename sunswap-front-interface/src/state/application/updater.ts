@@ -93,7 +93,7 @@ export default function Updater(): null {
     dispatch(updateBlockNumber({ chainId: debouncedState.chainId, blockNumber: debouncedState.blockNumber }));
     if(debouncedOtherState.chainId && debouncedOtherState.chainId > 0 && debouncedOtherState.blockNumber)
     dispatch(updateBlockNumber({ chainId: debouncedOtherState.chainId, blockNumber: debouncedOtherState.blockNumber }));
-  }, [windowVisible, dispatch, debouncedState.blockNumber, debouncedState.chainId, debouncedOtherState.chainId])
+  }, [windowVisible, dispatch, debouncedState.blockNumber, debouncedState.chainId, debouncedOtherState.chainId, debouncedOtherState.blockNumber])
 
   return null
 }
