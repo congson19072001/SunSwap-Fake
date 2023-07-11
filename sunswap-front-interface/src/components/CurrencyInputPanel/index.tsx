@@ -178,7 +178,7 @@ export default function CurrencyInputPanel({
                   style={{ display: 'inline', cursor: 'pointer' }}
                 >
                   {!hideBalance && !!currency && selectedCurrencyBalance
-                    ? 'Balance: ' + selectedCurrencyBalance?.toSignificant(6)
+                    ? 'Balance: ' + selectedCurrencyBalance?.toExact()
                     : ' -'}
                 </TYPE.body>
               )}

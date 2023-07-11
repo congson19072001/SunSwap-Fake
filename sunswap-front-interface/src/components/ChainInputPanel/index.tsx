@@ -183,7 +183,7 @@ export default function ChainInputPanel({
                   style={{ display: 'inline', cursor: 'pointer' }}
                 >
                   {!hideBalance && !!chain && selectedCurrencyBalance
-                    ? 'Balance: ' + selectedCurrencyBalance?.toSignificant(6)
+                    ? 'Balance: ' + selectedCurrencyBalance?.toExact()
                     : ' -'}
                 </TYPE.body>
               )}

@@ -9,7 +9,6 @@ import { FixedSizeList } from 'react-window'
 import { Text } from 'rebass'
 import ReactGA from 'react-ga'
 import { useActiveWeb3React } from '../../hooks'
-import { useToken } from '../../hooks/Tokens'
 import { CloseIcon } from '../../theme'
 import { isAddress } from '../../utils'
 import QuestionHelper from '../QuestionHelper'
@@ -61,8 +60,6 @@ export function ChainSearch({
   )
 
   const isAddressSearch = isAddress(searchQuery)
-  const searchToken = useToken(searchQuery)
-  console.log('searchToken', searchToken)
 
   useEffect(() => {
     if (isAddressSearch) {
@@ -81,7 +78,6 @@ export function ChainSearch({
   }, [allChains, searchQuery])
 
   const filteredSortedChains: ChainSelect[] = useMemo(() => {
-    // if (searchToken) return [searchToken]
     const sorted = filteredChains.sort(chainComparator)
     const symbolMatch = searchQuery
       .toLowerCase()

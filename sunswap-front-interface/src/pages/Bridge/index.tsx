@@ -199,7 +199,7 @@ export default function Bridge() {
       const amountToBurn = ethers.BigNumber.from(parsedAmounts[Field.OUTPUT]?.raw.toString());
       const encodedData = ethers.utils.solidityPack(['address', 'address', 'uint256', 'uint256'], [account, account, amountToBurn, nonce]);
       const hash = ethers.utils.keccak256(encodedData);
-      console.log(hash);
+      console.log(account, account, amountToBurn, nonce, hash);
       // const signer = library?.getSigner(account);
       const signature = await library.send('personal_sign', [
         hash,
