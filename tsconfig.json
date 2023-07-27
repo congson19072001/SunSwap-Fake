@@ -17,6 +17,8 @@
     "strictNullChecks": true,
     "noUnusedLocals": true,
     "noFallthroughCasesInSwitch": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
     "noImplicitReturns": true,

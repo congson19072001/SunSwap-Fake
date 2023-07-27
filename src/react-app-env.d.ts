@@ -6,6 +6,8 @@ declare module 'jazzicon' {
 
 declare module 'fortmatic'
 
+declare module 'chart.js/auto'
+
 interface Window {
   ethereum?: {
     isMetaMask?: true
